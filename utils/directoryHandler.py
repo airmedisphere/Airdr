@@ -408,8 +408,8 @@ async def backup_drive_data(loop=True):
             client = get_client()
             time_text = f"📅 **Last Updated :** {get_current_utc_time()} (UTC +00:00)"
             caption = (
-                f"🔐 **TG Drive Data Backup File**\n\n"
-                "Do not edit or delete this message. This is a backup file for the tg drive data.\n\n"
+                f"🔐 **AirDrive Data Backup File**\n\n"
+                "Do not edit or delete this message. This is a backup file for the AirDrive data.\n\n"
                 f"{time_text}"
             )
 

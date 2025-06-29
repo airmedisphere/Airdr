@@ -1,8 +1,8 @@
-# TGDrive Environment Setup Guide
+# AirDrive Environment Setup Guide
 
 ## Required Environment Variables
 
-Before running TGDrive, you need to set up the following environment variables in your `.env` file:
+Before running AirDrive, you need to set up the following environment variables in your `.env` file:
 
 ### 1. Telegram API Credentials
 Get these from https://my.telegram.org/auth:

@@ -1,8 +1,8 @@
-# TGDrive - A Google Drive Clone with Telegram Storage
+# AirDrive - A Google Drive Clone with Telegram Storage
 
-Welcome to TGDrive! This web application replicates Google Drive's functionalities using Telegram as its storage backend. Manage folders and files, perform actions like uploading, renaming, and deleting, utilize trash/bin support, enable permanent deletion, and share public links. The application offers admin login and automatically backs up the database to Telegram.
+Welcome to AirDrive! This web application replicates Google Drive's functionalities using Telegram as its storage backend. Manage folders and files, perform actions like uploading, renaming, and deleting, utilize trash/bin support, enable permanent deletion, and share public links. The application offers admin login and automatically backs up the database to Telegram.
 
-**Check out the [TGDrive Personal](https://github.com/TechShreyash/TGDrivePersonal) project for local desktop backup support.**
+**Check out the [AirDrive Personal](https://github.com/TechShreyash/TGDrivePersonal) project for local desktop backup support.**
 
 ## Features
 
@@ -14,8 +14,8 @@ Welcome to TGDrive! This web application replicates Google Drive's functionaliti
 - **Multiple Bots/Clients:** Support for multiple bots/clients for file operations and streaming from Telegram.
 - **Large File Support:** Upload files up to 4GB using Telegram Premium accounts.
 - **Auto Pinger:** Built-in feature to keep the website active by preventing idle timeouts.
-- **URL Upload Support:** Upload files directly to TG Drive from any direct download link of a file.
-- **Bot Mode:** Upload files directly to any folder in TG Drive by sending the file to the bot on Telegram ([Know More](#tg-drives-bot-mode))
+- **URL Upload Support:** Upload files directly to AirDrive from any direct download link of a file.
+- **Bot Mode:** Upload files directly to any folder in AirDrive by sending the file to the bot on Telegram ([Know More](#airdrives-bot-mode))
 
 ## Tech Stack
 
@@ -50,16 +50,16 @@ Welcome to TGDrive! This web application replicates Google Drive's functionaliti
 | `DATABASE_BACKUP_TIME` | integer (in seconds) | 60                                         | Interval in seconds for database backups to the storage channel                                             |
 | `MAX_FILE_SIZE`        | float (in GBs)       | 1.98 (3.98 if `STRING_SESSIONS` are added) | Maximum file size (in GBs) allowed for uploading to Telegram                                                |
 | `WEBSITE_URL`          | string               | None                                       | Website URL (with https/http) to auto-ping to keep the website active                                       |
-| `MAIN_BOT_TOKEN`       | string               | None                                       | Your Main Bot Token to use [TG Drive's Bot Mode](#tg-drives-bot-mode)                                       |
-| `TELEGRAM_ADMIN_IDS`   | string               | None                                       | List of Telegram User IDs of admins who can access the [bot mode](#tg-drives-bot-mode), separated by commas |
+| `MAIN_BOT_TOKEN`       | string               | None                                       | Your Main Bot Token to use [AirDrive's Bot Mode](#airdrives-bot-mode)                                       |
+| `TELEGRAM_ADMIN_IDS`   | string               | None                                       | List of Telegram User IDs of admins who can access the [bot mode](#airdrives-bot-mode), separated by commas |
 
 > Note: Premium Client (`STRING_SESSIONS`) will be used only to upload files when file size is greater than 2GB.
 
 > Note: File streaming/downloads will be handled by bots (`BOT_TOKENS`).
 
-> Note: Read more about TG Drive's Bot Mode [here](#tg-drives-bot-mode).
+> Note: Read more about AirDrive's Bot Mode [here](#airdrives-bot-mode).
 
-## Deploying Your Own TG Drive Application
+## Deploying Your Own AirDrive Application
 
 ### 1. Clone the Repository
 
@@ -76,7 +76,7 @@ Create a `.env` file in the root directory and add the necessary [environment va
 
 > **Note:** Some hosting services allow you to set environment variables directly through their interface, which may eliminate the need for a `.env` file.
 
-### 3. Running TG Drive
+### 3. Running AirDrive
 
 #### Deploying Locally
 
@@ -86,7 +86,7 @@ Create a `.env` file in the root directory and add the necessary [environment va
    pip install -U -r requirements.txt
    ```
 
-2. Start the TG Drive application using Uvicorn:
+2. Start the AirDrive application using Uvicorn:
 
    ```bash
    uvicorn main:app --host 0.0.0.0 --port 8000
@@ -97,13 +97,13 @@ Create a `.env` file in the root directory and add the necessary [environment va
 1. Build the Docker image:
 
    ```bash
-   docker build -t tgdrive .
+   docker build -t airdrive .
    ```
 
 2. Run the Docker container:
 
    ```bash
-   docker run -d -p 8000:8000 tgdrive
+   docker run -d -p 8000:8000 airdrive
    ```
 
 Access the application at `http://127.0.0.1:8000` or `http://your_ip:8000`.
@@ -120,11 +120,11 @@ Access the application at `http://127.0.0.1:8000` or `http://your_ip:8000`.
 
 </div>
 
-> **Note:** After updating the TG Drive code, clear your browser's cache to ensure the latest JavaScript files are loaded and run correctly.
+> **Note:** After updating the AirDrive code, clear your browser's cache to ensure the latest JavaScript files are loaded and run correctly.
 
-## TG Drive's Bot Mode
+## AirDrive's Bot Mode
 
-TG Drive's Bot Mode is a new feature that allows you to upload files directly to your TG Drive website from a Telegram bot. Simply send or forward any file to the bot, and it will be uploaded to your TG Drive. You can also specify the folder where you want the files to be uploaded.
+AirDrive's Bot Mode is a new feature that allows you to upload files directly to your AirDrive website from a Telegram bot. Simply send or forward any file to the bot, and it will be uploaded to your AirDrive. You can also specify the folder where you want the files to be uploaded.
 
 To use this feature, you need to set the configuration variables `MAIN_BOT_TOKEN` and `TELEGRAM_ADMIN_IDS`. More information about these variables can be found in the [optional variables section](#optional-variables).
 
@@ -148,9 +148,9 @@ Bot Mode - Youtube Video Tutorial : https://youtu.be/XSeY2XcHdGI
 
 1. Send the `/set_folder` command and follow the instructions provided by the bot.
 
-## Important Posts Regarding TG Drive
+## Important Posts Regarding AirDrive
 
-Stay informed by joining our updates channel on Telegram: [@TechZBots](https://telegram.me/TechZBots). We post updates, guides, and tips about TG Drive there.
+Stay informed by joining our updates channel on Telegram: [@TechZBots](https://telegram.me/TechZBots). We post updates, guides, and tips about AirDrive there.
 
 - https://telegram.me/TechZBots/891
 - https://telegram.me/TechZBots/876

@@ -8,17 +8,17 @@ from pathlib import Path
 
 logger = Logger(f"{__name__}")
 
-START_CMD = """🚀 **Welcome To TG Drive's Bot Mode**
+START_CMD = """🚀 **Welcome To AirDrive's Bot Mode**
 
-You can use this bot to upload files to your TG Drive website directly instead of doing it from website.
+You can use this bot to upload files to your AirDrive website directly instead of doing it from website.
 
 🗄 **Commands:**
 /set_folder - Set folder for file uploads
 /current_folder - Check current folder
 
-📤 **How To Upload Files:** Send a file to this bot and it will be uploaded to your TG Drive website. You can also set a folder for file uploads using /set_folder command.
+📤 **How To Upload Files:** Send a file to this bot and it will be uploaded to your AirDrive website. You can also set a folder for file uploads using /set_folder command.
 
-Read more about [TG Drive's Bot Mode](https://github.com/TechShreyash/TGDrive#tg-drives-bot-mode)
+Read more about [AirDrive's Bot Mode](https://github.com/TechShreyash/TGDrive#airdrives-bot-mode)
 """
 
 SET_FOLDER_PATH_CACHE = {}
@@ -329,7 +329,7 @@ async def file_handler(client: Client, message: Message):
     )
 
     await message.reply_text(
-        f"""✅ File Uploaded Successfully To Your TG Drive Website
+        f"""✅ File Uploaded Successfully To Your AirDrive Website
                              
 **File Name:** {file.file_name}
 **Folder:** {BOT_MODE.current_folder_name}
@@ -393,7 +393,7 @@ async def start_bot_mode(d, b):
 
     if default_folder_path and default_folder_name_to_use:
         BOT_MODE.set_folder(default_folder_path, default_folder_name_to_use)
-        message_to_send = f"Main Bot Started -> TG Drive's Bot Mode Enabled with previously set folder: {default_folder_name_to_use}"
+        message_to_send = f"Main Bot Started -> AirDrive's Bot Mode Enabled with previously set folder: {default_folder_name_to_use}"
     else:
         hardcoded_default_folder_name = "grammar"
         search_result = DRIVE_DATA.search_file_folder(hardcoded_default_folder_name)
@@ -416,14 +416,13 @@ async def start_bot_mode(d, b):
         if not found_grammar:
             logger.warning(f"No folder found with name '{hardcoded_default_folder_name}'. No default folder set initially.")
             BOT_MODE.set_folder(None, "No default folder set. Please use /set_folder.") 
-            message_to_send = "Main Bot Started -> TG Drive's Bot Mode Enabled. No 'grammar' folder found, please use /set_folder to choose one."
+            message_to_send = "Main Bot Started -> AirDrive's Bot Mode Enabled. No 'grammar' folder found, please use /set_folder to choose one."
 
         else:
-            message_to_send = "Main Bot Started -> TG Drive's Bot Mode Enabled with default folder Grammar"
+            message_to_send = "Main Bot Started -> AirDrive's Bot Mode Enabled with default folder Grammar"
 
     await main_bot.send_message(
         config.STORAGE_CHANNEL,
         message_to_send,
     )
     logger.info(message_to_send)
-                

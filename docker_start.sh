@@ -1,3 +1,3 @@
-docker stop tgdrive
-docker build -t tgdrive .
-docker run -d --name tgdrive -p 80:80 tgdrive
+docker stop airdrive
+docker build -t airdrive .
+docker run -d --name airdrive -p 80:80 airdrive
