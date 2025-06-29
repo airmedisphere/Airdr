@@ -1,77 +1,627 @@
-function showDirectory(data) {
-    data = data['contents']
-    document.getElementById('directory-data').innerHTML = ''
-    const isTrash = getCurrentPath().startsWith('/trash')
+// Modern TGDrive Main JavaScript
 
-    let html = ''
+// Global state
+let currentView = 'list';
+let currentDirectory = null;
 
-    // The data is already sorted by the server, so we just need to render it
-    for (const [key, item] of Object.entries(data)) {
-        if (item.type === 'folder') {
-            html += `<tr data-path="${item.path}" data-id="${item.id}" class="body-tr folder-tr"><td><div class="td-align"><img src="static/assets/folder-solid-icon.svg">${item.name}</div></td><td><div class="td-align"></div></td><td><div class="td-align"></div></td><td><div class="td-align"><a data-id="${item.id}" class="more-btn"><img src="static/assets/more-icon.svg" class="rotate-90"></a></div></td></tr>`
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+    setupEventListeners();
+    loadCurrentDirectory();
+});
 
-            if (isTrash) {
-                html += `<div data-path="${item.path}" id="more-option-${item.id}" data-name="${item.name}" class="more-options"><input class="more-options-focus" readonly="readonly" style="height:0;width:0;border:none;position:absolute"><div id="restore-${item.id}" data-path="${item.path}"><img src="static/assets/load-icon.svg"> Restore</div><hr><div id="delete-${item.id}" data-path="${item.path}"><img src="static/assets/trash-icon.svg"> Delete</div></div>`
-            }
-            else {
-                html += `<div data-path="${item.path}" id="more-option-${item.id}" data-name="${item.name}" class="more-options"><input class="more-options-focus" readonly="readonly" style="height:0;width:0;border:none;position:absolute"><div id="rename-${item.id}"><img src="static/assets/pencil-icon.svg"> Rename</div><hr><div id="move-${item.id}"><img src="static/assets/upload-icon.svg"> Move</div><hr><div id="copy-${item.id}"><img src="static/assets/file-icon.svg"> Copy</div><hr><div id="trash-${item.id}"><img src="static/assets/trash-icon.svg"> Trash</div><hr><div id="folder-share-${item.id}"><img src="static/assets/share-icon.svg"> Share</div></div>`
-            }
-        } else if (item.type === 'file') {
-            const size = convertBytes(item.size)
-            const duration = formatDuration(item.duration)
-            const durationCell = isVideoFile(item.name) ? `<span class="duration-badge">${duration}</span>` : ''
-            
-            html += `<tr data-path="${item.path}" data-id="${item.id}" data-name="${item.name}" class="body-tr file-tr"><td><div class="td-align"><img src="static/assets/file-icon.svg">${item.name}</div></td><td><div class="td-align">${size}</div></td><td><div class="td-align">${durationCell}</div></td><td><div class="td-align"><a data-id="${item.id}" class="more-btn"><img src="static/assets/more-icon.svg" class="rotate-90"></a></div></td></tr>`
-
-            if (isTrash) {
-                html += `<div data-path="${item.path}" id="more-option-${item.id}" data-name="${item.name}" class="more-options"><input class="more-options-focus" readonly="readonly" style="height:0;width:0;border:none;position:absolute"><div id="restore-${item.id}" data-path="${item.path}"><img src="static/assets/load-icon.svg"> Restore</div><hr><div id="delete-${item.id}" data-path="${item.path}"><img src="static/assets/trash-icon.svg"> Delete</div></div>`
-            }
-            else {
-                html += `<div data-path="${item.path}" id="more-option-${item.id}" data-name="${item.name}" class="more-options"><input class="more-options-focus" readonly="readonly" style="height:0;width:0;border:none;position:absolute"><div id="rename-${item.id}"><img src="static/assets/pencil-icon.svg"> Rename</div><hr><div id="move-${item.id}"><img src="static/assets/upload-icon.svg"> Move</div><hr><div id="copy-${item.id}"><img src="static/assets/file-icon.svg"> Copy</div><hr><div id="trash-${item.id}"><img src="static/assets/trash-icon.svg"> Trash</div><hr><div id="share-${item.id}"><img src="static/assets/share-icon.svg"> Share</div></div>`
-            }
+function initializeApp() {
+    // Initialize view toggle
+    const savedView = localStorage.getItem('viewMode') || 'list';
+    setViewMode(savedView);
+    
+    // Initialize input validation
+    const inputs = ['new-folder-name', 'rename-name', 'file-search'];
+    inputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', validateInput);
         }
-    }
-    document.getElementById('directory-data').innerHTML = html
-
-    if (!isTrash) {
-        document.querySelectorAll('.folder-tr').forEach(div => {
-            div.ondblclick = openFolder;
-        });
-        document.querySelectorAll('.file-tr').forEach(div => {
-            div.ondblclick = openFile;
-        });
-    }
-
-    document.querySelectorAll('.more-btn').forEach(div => {
-        div.addEventListener('click', function (event) {
-            event.preventDefault();
-            openMoreButton(div)
-        });
     });
-
-    // Update breadcrumb after showing directory
-    if (window.updateBreadcrumb) {
-        window.updateBreadcrumb();
-    }
-
-    // Update file count after showing directory
-    if (window.updateFileCount) {
-        window.updateFileCount({ contents: data });
+    
+    // Check authentication
+    if (getCurrentPath().includes('/share_')) {
+        loadCurrentDirectory();
+    } else {
+        if (getPassword() === null) {
+            showModal('get-password');
+        } else {
+            loadCurrentDirectory();
+        }
     }
 }
 
-// Helper function to check if file is a video
+function setupEventListeners() {
+    // View toggle
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            setViewMode(view);
+        });
+    });
+    
+    // Search form
+    const searchForm = document.getElementById('search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', handleSearch);
+    }
+    
+    // Modal close on background click
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('bg-blur')) {
+            closeAllModals();
+        }
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+    
+    // Context menu
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('click', closeContextMenu);
+}
+
+function setViewMode(mode) {
+    currentView = mode;
+    localStorage.setItem('viewMode', mode);
+    
+    // Update toggle buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === mode);
+    });
+    
+    // Update file container
+    const container = document.getElementById('file-container');
+    if (container) {
+        container.className = `file-container ${mode}-view`;
+    }
+    
+    // Re-render files if directory is loaded
+    if (currentDirectory) {
+        renderFiles(currentDirectory);
+    }
+}
+
+async function loadCurrentDirectory() {
+    const path = getCurrentPath();
+    if (path === 'redirect') return;
+    
+    try {
+        showLoading(true);
+        const auth = getFolderAuthFromPath();
+        
+        const data = { 
+            'path': path, 
+            'auth': auth,
+            'sort_by': getCurrentSortBy(),
+            'sort_order': getCurrentSortOrder()
+        };
+        
+        const response = await postJson('/api/getDirectory', data);
+        
+        if (response.status === 'ok') {
+            currentDirectory = response.data;
+            renderFiles(response.data);
+            
+            // Update navigation for shared folders
+            if (getCurrentPath().startsWith('/share')) {
+                updateSharedFolderNavigation(response);
+            }
+            
+            // Update breadcrumb and file count
+            if (window.updateBreadcrumb) {
+                window.updateBreadcrumb();
+            }
+            
+            if (window.updateFileCount) {
+                window.updateFileCount(response.data);
+            }
+        } else {
+            showError('Directory not found');
+        }
+    } catch (error) {
+        console.error('Error loading directory:', error);
+        showError('Failed to load directory');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function renderFiles(data) {
+    const container = document.getElementById('directory-data');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    const files = data.contents || {};
+    const isTrash = getCurrentPath().startsWith('/trash');
+    
+    if (Object.keys(files).length === 0) {
+        renderEmptyState(container);
+        return;
+    }
+    
+    Object.entries(files).forEach(([key, item]) => {
+        const fileElement = createFileElement(item, isTrash);
+        container.appendChild(fileElement);
+    });
+    
+    // Add event listeners
+    setupFileEventListeners();
+}
+
+function createFileElement(item, isTrash) {
+    const element = document.createElement('div');
+    element.className = 'file-item';
+    element.dataset.path = item.path;
+    element.dataset.id = item.id;
+    element.dataset.name = item.name;
+    element.dataset.type = item.type;
+    
+    const isFolder = item.type === 'folder';
+    const iconClass = isFolder ? 'folder' : 'file';
+    
+    // Create file icon
+    const iconSvg = isFolder ? 
+        `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </svg>` :
+        `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+        </svg>`;
+    
+    // Create file meta information
+    const metaItems = [];
+    
+    if (!isFolder) {
+        metaItems.push(`<span class="file-size">${convertBytes(item.size)}</span>`);
+        
+        if (item.duration && isVideoFile(item.name)) {
+            metaItems.push(`<span class="file-duration">${formatDuration(item.duration)}</span>`);
+        }
+    }
+    
+    metaItems.push(`<span class="file-date">${formatDate(item.upload_date)}</span>`);
+    
+    // Create actions
+    const actions = createFileActions(item, isTrash);
+    
+    element.innerHTML = `
+        <div class="file-icon ${iconClass}">
+            ${iconSvg}
+        </div>
+        <div class="file-info">
+            <div class="file-name" title="${item.name}">${item.name}</div>
+            <div class="file-meta">
+                ${metaItems.join('')}
+            </div>
+        </div>
+        <div class="file-actions">
+            ${actions}
+        </div>
+    `;
+    
+    return element;
+}
+
+function createFileActions(item, isTrash) {
+    if (isTrash) {
+        return `
+            <button class="action-btn restore-btn" data-id="${item.id}" title="Restore">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23,4 23,10 17,10"></polyline>
+                    <polyline points="1,20 1,14 7,14"></polyline>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                </svg>
+            </button>
+            <button class="action-btn delete-btn" data-id="${item.id}" title="Delete permanently">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        `;
+    } else {
+        return `
+            <button class="action-btn more-btn" data-id="${item.id}" title="More options">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                </svg>
+            </button>
+        `;
+    }
+}
+
+function renderEmptyState(container) {
+    const currentPath = getCurrentPath();
+    let message = 'This folder is empty';
+    let icon = `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+    </svg>`;
+    
+    if (currentPath.startsWith('/trash')) {
+        message = 'Trash is empty';
+        icon = `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <polyline points="3,6 5,6 21,6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>`;
+    } else if (currentPath.startsWith('/search_')) {
+        message = 'No files found';
+        icon = `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+        </svg>`;
+    }
+    
+    container.innerHTML = `
+        <div class="empty-state">
+            ${icon}
+            <h3>${message}</h3>
+            <p>Start by uploading files or creating folders</p>
+        </div>
+    `;
+}
+
+function setupFileEventListeners() {
+    const isTrash = getCurrentPath().startsWith('/trash');
+    
+    if (!isTrash) {
+        // Double-click to open files/folders
+        document.querySelectorAll('.file-item[data-type="folder"]').forEach(item => {
+            item.addEventListener('dblclick', openFolder);
+        });
+        
+        document.querySelectorAll('.file-item[data-type="file"]').forEach(item => {
+            item.addEventListener('dblclick', openFile);
+        });
+    }
+    
+    // Action buttons
+    document.querySelectorAll('.more-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showContextMenu(e, this.dataset.id);
+        });
+    });
+    
+    document.querySelectorAll('.restore-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            restoreItem(this.dataset.id);
+        });
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteItem(this.dataset.id);
+        });
+    });
+}
+
+function openFolder() {
+    const path = (getCurrentPath() + '/' + this.dataset.id + '/').replace(/\/+/g, '/');
+    const auth = getFolderAuthFromPath();
+    
+    let url = `/?path=${path}`;
+    if (auth) {
+        url += `&auth=${auth}`;
+    }
+    
+    window.location.href = url;
+}
+
+function openFile() {
+    const fileName = this.dataset.name.toLowerCase();
+    const filePath = '/file?path=' + this.dataset.path + '/' + this.dataset.id;
+    
+    // Check if it's a PDF file
+    if (fileName.endsWith('.pdf')) {
+        const viewerPath = '/pdf-viewer?path=' + this.dataset.path + '/' + this.dataset.id;
+        window.open(viewerPath, '_blank');
+        return;
+    }
+    
+    // Check if it's a video file
+    if (isVideoFile(fileName)) {
+        const streamPath = '/stream?url=' + getRootUrl() + filePath;
+        window.open(streamPath, '_blank');
+        return;
+    }
+    
+    window.open(filePath, '_blank');
+}
+
+function showContextMenu(event, itemId) {
+    const contextMenu = document.getElementById('context-menu');
+    const item = document.querySelector(`[data-id="${itemId}"]`);
+    
+    if (!contextMenu || !item) return;
+    
+    const isFolder = item.dataset.type === 'folder';
+    const itemName = item.dataset.name;
+    
+    // Create context menu items
+    const menuItems = [
+        {
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>`,
+            label: 'Rename',
+            action: () => showRenameModal(itemId, itemName)
+        },
+        {
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 7h10v10H7z"></path>
+                <path d="M5 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"></path>
+                <path d="M5 19v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"></path>
+            </svg>`,
+            label: 'Move',
+            action: () => showMoveModal(itemId, itemName)
+        },
+        {
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>`,
+            label: 'Copy',
+            action: () => showCopyModal(itemId, itemName)
+        }
+    ];
+    
+    // Add share option
+    if (isFolder) {
+        menuItems.push({
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16,6 12,2 8,6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+            </svg>`,
+            label: 'Share',
+            action: () => shareFolder(itemId)
+        });
+    } else {
+        menuItems.push({
+            icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16,6 12,2 8,6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+            </svg>`,
+            label: 'Share',
+            action: () => shareFile(itemId, itemName)
+        });
+    }
+    
+    // Add divider and trash option
+    menuItems.push('divider');
+    menuItems.push({
+        icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3,6 5,6 21,6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>`,
+        label: 'Move to trash',
+        action: () => trashItem(itemId),
+        className: 'danger'
+    });
+    
+    // Render menu
+    contextMenu.innerHTML = menuItems.map(item => {
+        if (item === 'divider') {
+            return '<div class="context-menu-divider"></div>';
+        }
+        
+        return `
+            <div class="context-menu-item ${item.className || ''}" data-action="${menuItems.indexOf(item)}">
+                ${item.icon}
+                ${item.label}
+            </div>
+        `;
+    }).join('');
+    
+    // Position menu
+    const rect = event.target.getBoundingClientRect();
+    contextMenu.style.left = `${rect.left}px`;
+    contextMenu.style.top = `${rect.bottom + 5}px`;
+    
+    // Show menu
+    contextMenu.classList.add('show');
+    
+    // Add click handlers
+    contextMenu.querySelectorAll('.context-menu-item').forEach((item, index) => {
+        item.addEventListener('click', () => {
+            const menuItem = menuItems[index];
+            if (menuItem && menuItem.action) {
+                menuItem.action();
+            }
+            closeContextMenu();
+        });
+    });
+}
+
+function closeContextMenu() {
+    const contextMenu = document.getElementById('context-menu');
+    if (contextMenu) {
+        contextMenu.classList.remove('show');
+    }
+}
+
+function handleContextMenu(event) {
+    // Prevent default context menu on file items
+    const fileItem = event.target.closest('.file-item');
+    if (fileItem && !getCurrentPath().startsWith('/trash')) {
+        event.preventDefault();
+        const moreBtn = fileItem.querySelector('.more-btn');
+        if (moreBtn) {
+            showContextMenu(event, moreBtn.dataset.id);
+        }
+    }
+}
+
+function handleSearch(event) {
+    event.preventDefault();
+    const query = document.getElementById('file-search').value.trim();
+    
+    if (!query) {
+        showNotification('Please enter a search term', 'warning');
+        return;
+    }
+    
+    const searchPath = '/?path=/search_' + encodeURIComponent(query);
+    window.location.href = searchPath;
+}
+
+function handleKeyboardShortcuts(event) {
+    // Don't interfere with input fields
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    // Ctrl/Cmd + shortcuts
+    if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+            case 'n':
+                event.preventDefault();
+                if (!getCurrentPath().startsWith('/trash')) {
+                    document.getElementById('new-button').click();
+                }
+                break;
+            case 'f':
+                event.preventDefault();
+                document.getElementById('file-search').focus();
+                break;
+            case 'u':
+                event.preventDefault();
+                if (!getCurrentPath().startsWith('/trash')) {
+                    document.getElementById('file-upload-btn').click();
+                }
+                break;
+        }
+    }
+    
+    // Escape key
+    if (event.key === 'Escape') {
+        closeAllModals();
+        closeContextMenu();
+    }
+}
+
+// Modal functions
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const bgBlur = document.getElementById('bg-blur');
+    
+    if (modal && bgBlur) {
+        bgBlur.classList.add('show');
+        modal.classList.add('show');
+        
+        // Focus first input
+        const firstInput = modal.querySelector('input[type="text"], input[type="password"]');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const bgBlur = document.getElementById('bg-blur');
+    
+    if (modal && bgBlur) {
+        modal.classList.remove('show');
+        bgBlur.classList.remove('show');
+    }
+}
+
+function closeAllModals() {
+    document.querySelectorAll('.modal.show').forEach(modal => {
+        modal.classList.remove('show');
+    });
+    
+    const bgBlur = document.getElementById('bg-blur');
+    if (bgBlur) {
+        bgBlur.classList.remove('show');
+    }
+}
+
+// Utility functions
+function showLoading(show) {
+    const container = document.getElementById('file-container');
+    if (container) {
+        container.classList.toggle('loading', show);
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Style the notification
+    Object.assign(notification.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        padding: '12px 20px',
+        borderRadius: '8px',
+        color: 'white',
+        fontWeight: '500',
+        zIndex: '1000',
+        transform: 'translateX(100%)',
+        transition: 'transform 0.3s ease',
+        maxWidth: '400px',
+        wordWrap: 'break-word'
+    });
+    
+    // Set background color based on type
+    const colors = {
+        info: '#3b82f6',
+        success: '#10b981',
+        warning: '#f59e0b',
+        error: '#ef4444'
+    };
+    notification.style.backgroundColor = colors[type] || colors.info;
+    
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Hide notification after 3 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+function showError(message) {
+    showNotification(message, 'error');
+}
+
 function isVideoFile(fileName) {
     const videoExtensions = ['.mp4', '.mkv', '.webm', '.mov', '.avi', '.ts', '.ogv', '.m4v', '.flv', '.wmv', '.3gp', '.mpg', '.mpeg'];
     const extension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
     return videoExtensions.includes(extension);
 }
 
-// Helper function to format duration
 function formatDuration(duration) {
-    if (!duration || duration === 0) {
-        return '';
-    }
+    if (!duration || duration === 0) return '';
     
     const hours = Math.floor(duration / 3600);
     const minutes = Math.floor((duration % 3600) / 60);
@@ -84,38 +634,99 @@ function formatDuration(duration) {
     }
 }
 
-document.getElementById('search-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const query = document.getElementById('file-search').value;
-    console.log(query)
-    if (query === '') {
-        alert('Search field is empty');
-        return;
+function formatDate(dateString) {
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    } catch {
+        return dateString;
     }
-    const path = '/?path=/search_' + encodeURI(query);
-    console.log(path)
-    window.location = path;
-});
+}
 
-// Loading Main Page
+function getCurrentSortBy() {
+    return localStorage.getItem('sortBy') || 'date';
+}
 
-document.addEventListener('DOMContentLoaded', function () {
-    const inputs = ['new-folder-name', 'rename-name', 'file-search']
-    for (let i = 0; i < inputs.length; i++) {
-        document.getElementById(inputs[i]).addEventListener('input', validateInput);
-    }
+function getCurrentSortOrder() {
+    return localStorage.getItem('sortOrder') || 'desc';
+}
 
-    if (getCurrentPath().includes('/share_')) {
-        getCurrentDirectoryWithSort()
+function updateSharedFolderNavigation(response) {
+    const sections = document.querySelector('.sidebar-nav').getElementsByTagName('a');
+    const currentPath = getCurrentPath();
+    const auth = getFolderAuthFromPath();
+    
+    if (removeSlash(response.auth_home_path) === removeSlash(currentPath.split('_')[1])) {
+        sections[0].classList.add('selected');
     } else {
-        if (getPassword() === null) {
-            document.getElementById('bg-blur').style.zIndex = '2';
-            document.getElementById('bg-blur').style.opacity = '0.1';
-
-            document.getElementById('get-password').style.zIndex = '3';
-            document.getElementById('get-password').style.opacity = '1';
-        } else {
-            getCurrentDirectoryWithSort()
-        }
+        sections[0].classList.remove('selected');
     }
-});
+    
+    sections[0].href = `/?path=/share_${removeSlash(response.auth_home_path)}&auth=${auth}`;
+}
+
+// Action functions (to be implemented by other modules)
+function showRenameModal(itemId, itemName) {
+    // Implementation in fileClickHandler.js
+    if (window.renameFileFolder) {
+        window.renameFileFolder(itemId, itemName);
+    }
+}
+
+function showMoveModal(itemId, itemName) {
+    // Implementation in moveCopy.js
+    if (window.showMoveModal) {
+        window.showMoveModal(itemId, itemName);
+    }
+}
+
+function showCopyModal(itemId, itemName) {
+    // Implementation in moveCopy.js
+    if (window.showCopyModal) {
+        window.showCopyModal(itemId, itemName);
+    }
+}
+
+function shareFile(itemId, itemName) {
+    // Implementation in fileClickHandler.js
+    if (window.shareFile) {
+        window.shareFile(itemId, itemName);
+    }
+}
+
+function shareFolder(itemId) {
+    // Implementation in fileClickHandler.js
+    if (window.shareFolder) {
+        window.shareFolder(itemId);
+    }
+}
+
+function trashItem(itemId) {
+    // Implementation in fileClickHandler.js
+    if (window.trashFileFolder) {
+        window.trashFileFolder(itemId);
+    }
+}
+
+function restoreItem(itemId) {
+    // Implementation in fileClickHandler.js
+    if (window.restoreFileFolder) {
+        window.restoreFileFolder(itemId);
+    }
+}
+
+function deleteItem(itemId) {
+    // Implementation in fileClickHandler.js
+    if (window.deleteFileFolder) {
+        window.deleteFileFolder(itemId);
+    }
+}
+
+// Export functions for other modules
+window.showModal = showModal;
+window.closeModal = closeModal;
+window.closeAllModals = closeAllModals;
+window.showNotification = showNotification;
+window.showError = showError;
+window.loadCurrentDirectory = loadCurrentDirectory;
+window.currentDirectory = currentDirectory;

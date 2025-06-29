@@ -4,163 +4,300 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AirDrive</title>
+    <title>TGDrive - Cloud Storage</title>
     <link rel="stylesheet" href="static/home.css" />
+    <link rel="icon" href="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png" type="image/png">
 
-    <!-- Fonts Start -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-        rel="stylesheet" />
-    <!-- Fonts End -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css">
 </head>
 
 <body>
     <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-        <svg viewBox="0 0 24 24">
-            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
     </button>
 
-    <div class="container">
-        <!-- Sidebar Start -->
-        <div class="sidebar" id="sidebar">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <img src="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png" />
-                <span>AirDrive</span>
-            </div>
-
-            <button id="new-button" class="new-button">
-                <img src="static/assets/plus-icon.svg" />New
-            </button>
-
-            <div id="new-upload" class="new-upload">
-                <input id="new-upload-focus" type="text"
-                    style="height: 0px; width: 0px; border: none; position: absolute" readonly />
-                <div id="new-folder-btn">
-                    <img src="static/assets/folder-icon.svg" />
-                    New Folder
-                </div>
-                <hr />
-                <div id="file-upload-btn">
-                    <img src="static/assets/upload-icon.svg" />
-                    File Upload
-                </div>
-                <input type="file" id="fileInput" style="height: 0px; width: 0px; border: none; position: absolute" />
-                <hr />
-                <div id="url-upload-btn">
-                    <img src="static/assets/link-icon.svg" />
-                    URL Upload
-                </div>
-                <hr />
-                <div id="smart-bulk-import-btn">
-                    <img src="static/assets/upload-icon.svg" />
-                    🧠 Smart Bulk Import
-                </div>
-            </div>
-
-            <div class="sidebar-menu">
-                <a class="selected-item" href="/?path=/"><img src="static/assets/home-icon.svg" />Home</a>
-                <a class="unselected-item" href="/?path=/trash"><img src="static/assets/trash-icon.svg" />Trash</a>
-            </div>
-
-            <!-- Storage Info Section -->
-            <div class="storage-info" id="storage-info">
-                <div class="storage-header">
-                    <svg viewBox="0 0 24 24" width="20" height="20">
-                        <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/>
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                     </svg>
-                    <span>Storage</span>
+                    <span>TGDrive</span>
                 </div>
-                <div class="storage-usage">
-                    <div class="storage-text">
-                        <span id="storage-used">Loading...</span>
-                        <span class="storage-total">/ Unlimited</span>
-                    </div>
-                    <div class="storage-bar">
-                        <div class="storage-progress" id="storage-progress"></div>
-                    </div>
-                </div>
-                <button class="storage-details-btn" onclick="openStorageAnalytics()">
-                    View Details
+            </div>
+
+            <div class="sidebar-content">
+                <button id="new-button" class="new-button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New
                 </button>
+
+                <div id="new-upload" class="new-upload">
+                    <input id="new-upload-focus" type="text" style="height: 0px; width: 0px; border: none; position: absolute" readonly />
+                    
+                    <div id="new-folder-btn" class="upload-option">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        New Folder
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div id="file-upload-btn" class="upload-option">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        File Upload
+                    </div>
+                    <input type="file" id="fileInput" style="height: 0px; width: 0px; border: none; position: absolute" />
+                    
+                    <div class="divider"></div>
+                    
+                    <div id="url-upload-btn" class="upload-option">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        URL Upload
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div id="smart-bulk-import-btn" class="upload-option">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                        Smart Bulk Import
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a class="nav-item selected" href="/?path=/">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        </svg>
+                        Home
+                    </a>
+                    <a class="nav-item" href="/?path=/trash">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Trash
+                    </a>
+                </nav>
+
+                <!-- Storage Info -->
+                <div class="storage-info" id="storage-info">
+                    <div class="storage-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        </svg>
+                        <span>Storage</span>
+                    </div>
+                    <div class="storage-usage">
+                        <div class="storage-text">
+                            <span id="storage-used">Loading...</span>
+                            <span class="storage-total">/ Unlimited</span>
+                        </div>
+                        <div class="storage-bar">
+                            <div class="storage-progress" id="storage-progress"></div>
+                        </div>
+                    </div>
+                    <button class="storage-details-btn" onclick="openStorageAnalytics()">
+                        View Details
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="search-container">
+                    <form id="search-form" class="search-form">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="M21 21l-4.35-4.35"></path>
+                        </svg>
+                        <input id="file-search" type="text" placeholder="Search in Drive" autocomplete="off" />
+                    </form>
+                </div>
+                
+                <div class="header-actions">
+                    <div class="sort-controls">
+                        <select id="sort-by" class="sort-select">
+                            <option value="date">Sort by Date</option>
+                            <option value="name">Sort by Name</option>
+                            <option value="size">Sort by Size</option>
+                        </select>
+                        <button id="sort-order" class="sort-order-btn" data-order="desc" title="Descending">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 14l5-5 5 5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Breadcrumb Navigation -->
+            <div class="breadcrumb-container">
+                <nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
+                    <!-- Breadcrumb will be populated here -->
+                </nav>
+            </div>
+
+            <!-- File Count Stats -->
+            <div class="file-stats" id="file-count-stats">
+                <!-- File count stats will be populated here -->
+            </div>
+
+            <!-- File Grid/List -->
+            <div class="content-area">
+                <div class="content-header">
+                    <h2 class="content-title">Files</h2>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="list" title="List view">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                        </button>
+                        <button class="view-btn" data-view="grid" title="Grid view">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="file-container" id="file-container">
+                    <div class="file-list" id="directory-data">
+                        <!-- Files will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Background Blur -->
+    <div id="bg-blur" class="bg-blur"></div>
+
+    <!-- Modals -->
+    <!-- Create New Folder Modal -->
+    <div id="create-new-folder" class="modal">
+        <div class="modal-content">
+            <h3>New Folder</h3>
+            <input type="text" id="new-folder-name" placeholder="Enter folder name" autocomplete="off" />
+            <div class="modal-actions">
+                <button id="new-folder-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="new-folder-create" class="btn btn-primary">Create</button>
             </div>
         </div>
-        <!-- Sidebar End -->
+    </div>
 
-        <div id="bg-blur" class="bg-blur"></div>
-
-        <!-- Create New Folder Start -->
-        <div id="create-new-folder" class="create-new-folder">
-            <span>New Folder</span>
-            <input type="text" id="new-folder-name" placeholder="Enter Folder Name" autocomplete="off" />
-            <div>
-                <button id="new-folder-cancel">Cancel</button>
-                <button id="new-folder-create">Create</button>
+    <!-- Rename Modal -->
+    <div id="rename-file-folder" class="modal">
+        <div class="modal-content">
+            <h3>Rename</h3>
+            <input type="text" id="rename-name" placeholder="Enter new name" autocomplete="off" />
+            <div class="modal-actions">
+                <button id="rename-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="rename-create" class="btn btn-primary">Rename</button>
             </div>
         </div>
-        <!-- Create New Folder End -->
+    </div>
 
-        <!-- File / Folder Rename Start -->
-        <div id="rename-file-folder" class="create-new-folder">
-            <span>Edit File/Folder Name</span>
-            <input type="text" id="rename-name" placeholder="Enter File/Folder Name" autocomplete="off" />
-            <div>
-                <button id="rename-cancel">Cancel</button>
-                <button id="rename-create">Rename</button>
-            </div>
-        </div>
-        <!-- File / Folder Rename End -->
-
-        <!-- Move/Copy Modal Start -->
-        <div id="move-copy-modal" class="create-new-folder">
-            <span id="move-copy-title">Move Item</span>
+    <!-- Move/Copy Modal -->
+    <div id="move-copy-modal" class="modal modal-large">
+        <div class="modal-content">
+            <h3 id="move-copy-title">Move Item</h3>
             <div class="folder-tree" id="folder-tree">
                 <!-- Folder tree will be populated here -->
             </div>
-            <div class="move-copy-actions">
-                <button id="move-copy-cancel">Cancel</button>
-                <button id="move-item-btn" class="primary-btn">Move</button>
-                <button id="copy-item-btn" class="secondary-btn">Copy</button>
+            <div class="modal-actions">
+                <button id="move-copy-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="move-item-btn" class="btn btn-primary">Move</button>
+                <button id="copy-item-btn" class="btn btn-success">Copy</button>
             </div>
         </div>
-        <!-- Move/Copy Modal End -->
+    </div>
 
-        <!-- Remote Upload Start -->
-        <div id="new-url-upload" class="create-new-folder">
-            <span>URL Upload</span>
-            <input type="text" id="remote-url" placeholder="Enter Direct Download Link Of File" autocomplete="off" />
-            <div id="single-threaded-div">
-                <input type="checkbox" name="single-threaded-toggle" id="single-threaded-toggle">
+    <!-- URL Upload Modal -->
+    <div id="new-url-upload" class="modal">
+        <div class="modal-content">
+            <h3>URL Upload</h3>
+            <input type="text" id="remote-url" placeholder="Enter direct download link" autocomplete="off" />
+            <div class="checkbox-container">
+                <input type="checkbox" id="single-threaded-toggle">
                 <label for="single-threaded-toggle">Single Threaded</label>
-                <a href="#"><img src="static/assets/info-icon-small.svg" alt="Info"></a>
+                <button type="button" class="info-btn" title="Use single-threaded download for better compatibility with some servers">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 16v-4"></path>
+                        <path d="M12 8h.01"></path>
+                    </svg>
+                </button>
             </div>
-            <div>
-                <button id="remote-cancel">Cancel</button>
-                <button id="remote-start">Upload</button>
+            <div class="modal-actions">
+                <button id="remote-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="remote-start" class="btn btn-primary">Upload</button>
             </div>
         </div>
-        <!-- Remote Upload End -->
+    </div>
 
-        <!-- Smart Bulk Import Modal Start -->
-        <div id="smart-bulk-import-modal" class="create-new-folder">
-            <span>🧠 Smart Bulk Import</span>
+    <!-- Smart Bulk Import Modal -->
+    <div id="smart-bulk-import-modal" class="modal modal-large">
+        <div class="modal-content">
+            <h3>🧠 Smart Bulk Import</h3>
             
-            <!-- Channel Input -->
-            <input type="text" id="smart-bulk-channel" placeholder="Channel username, ID, or message link" autocomplete="off" />
-            
-            <!-- Message Range -->
-            <div class="message-range-container">
-                <input type="number" id="smart-bulk-start-msg" placeholder="Start Message ID (optional)" autocomplete="off" />
-                <input type="number" id="smart-bulk-end-msg" placeholder="End Message ID (optional)" autocomplete="off" />
+            <div class="form-group">
+                <label for="smart-bulk-channel">Channel</label>
+                <input type="text" id="smart-bulk-channel" placeholder="Channel username, ID, or message link" autocomplete="off" />
             </div>
             
-            <!-- Import Mode Selection -->
-            <div class="import-mode-container">
-                <label>Import Mode:</label>
-                <div class="import-mode-options">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="smart-bulk-start-msg">Start Message ID</label>
+                    <input type="number" id="smart-bulk-start-msg" placeholder="Optional" autocomplete="off" />
+                </div>
+                <div class="form-group">
+                    <label for="smart-bulk-end-msg">End Message ID</label>
+                    <input type="number" id="smart-bulk-end-msg" placeholder="Optional" autocomplete="off" />
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Import Mode</label>
+                <div class="radio-group">
                     <label class="radio-option">
                         <input type="radio" name="import-mode" value="auto" checked>
                         <span>🧠 Auto-Detect (Recommended)</span>
@@ -176,109 +313,76 @@
                 </div>
             </div>
             
-            <!-- Channel Status Display -->
             <div id="channel-status" class="channel-status" style="display: none;">
                 <!-- Status will be populated here -->
             </div>
             
-            <!-- Info Section -->
-            <div class="smart-import-info">
+            <div class="info-box">
+                <h4>Import Methods</h4>
                 <p><strong>🧠 Auto-Detect:</strong> Bot automatically chooses the best method based on admin status.</p>
                 <p><strong>⚡ Fast Import:</strong> Direct reference without copying (requires bot admin in source channel).</p>
                 <p><strong>📦 Regular Import:</strong> Copy files to storage channel (works always).</p>
                 <p><strong>Message Links:</strong> Supports t.me/channel/123 format for easy import.</p>
             </div>
             
-            <div>
-                <button id="smart-bulk-check">Check Channel</button>
-                <button id="smart-bulk-cancel">Cancel</button>
-                <button id="smart-bulk-start">Import</button>
+            <div class="modal-actions">
+                <button id="smart-bulk-check" class="btn btn-secondary">Check Channel</button>
+                <button id="smart-bulk-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="smart-bulk-start" class="btn btn-primary">Import</button>
             </div>
         </div>
-        <!-- Smart Bulk Import Modal End -->
-
-        <!-- Get Password Start -->
-        <div id="get-password" class="create-new-folder">
-            <span>Admin Login</span>
-            <input type="password" id="auth-pass" placeholder="Enter Password" autocomplete="off" />
-            <div>
-                <button id="pass-login">Login</button>
-            </div>
-        </div>
-        <!-- Get Password End -->
-
-        <!-- File Uploader Start -->
-        <div id="file-uploader" class="file-uploader">
-            <span class="upload-head">🚀 Uploading File...</span>
-            <span id="upload-filename" class="upload-info">Filename: </span>
-            <span id="upload-filesize" class="upload-info">Filesize: </span>
-            <span id="upload-status" class="upload-info">Status: </span>
-            <span id="upload-percent" class="upload-info">Progress: </span>
-            <div class="progress">
-                <div class="progress-bar" id="progress-bar"></div>
-            </div>
-            <div class="btn-div">
-                <button id="cancel-file-upload">Cancel Upload</button>
-            </div>
-        </div>
-        <!-- File Uploader End -->
-
-        <!-- Main Content Start -->
-        <div class="main-content">
-            <div class="header">
-                <div class="search-bar">
-                    <img src="static/assets/search-icon.svg" />
-                    <form id="search-form">
-                        <input id="file-search" type="text" placeholder="Search in Drive" autocomplete="off" />
-                    </form>
-                </div>
-                
-                <!-- Sort Controls -->
-                <div class="sort-controls">
-                    <select id="sort-by" class="sort-select">
-                        <option value="date">Sort by Date</option>
-                        <option value="name">Sort by Name</option>
-                        <option value="size">Sort by Size</option>
-                    </select>
-                    <button id="sort-order" class="sort-order-btn" data-order="desc" title="Descending">
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                            <path d="M7 14l5-5 5 5z"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Breadcrumb Navigation -->
-            <div class="breadcrumb-container">
-                <div class="breadcrumb" id="breadcrumb">
-                    <!-- Breadcrumb will be populated here -->
-                </div>
-            </div>
-
-            <!-- File Count Stats -->
-            <div class="file-count-stats" id="file-count-stats">
-                <!-- File count stats will be populated here -->
-            </div>
-
-            <div class="directory">
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>File Size</th>
-                                <th>Duration</th>
-                                <th>More</th>
-                            </tr>
-                        </thead>
-                        <tbody id="directory-data"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <!-- Main Content End -->
     </div>
 
+    <!-- Login Modal -->
+    <div id="get-password" class="modal">
+        <div class="modal-content">
+            <h3>Admin Login</h3>
+            <input type="password" id="auth-pass" placeholder="Enter password" autocomplete="off" />
+            <div class="modal-actions">
+                <button id="pass-login" class="btn btn-primary">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Upload Progress Modal -->
+    <div id="file-uploader" class="modal">
+        <div class="modal-content">
+            <h3>🚀 Uploading File...</h3>
+            <div class="upload-info">
+                <div class="info-item">
+                    <span class="label">Filename:</span>
+                    <span id="upload-filename" class="value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Size:</span>
+                    <span id="upload-filesize" class="value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Status:</span>
+                    <span id="upload-status" class="value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Progress:</span>
+                    <span id="upload-percent" class="value">0%</span>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-bar"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-file-upload" class="btn btn-danger">Cancel Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+        <!-- Context menu items will be populated here -->
+    </div>
+
+    <!-- Scripts -->
     <script src="static/js/extra.js"></script>
     <script src="static/js/apiHandler.js"></script>
     <script src="static/js/sidebar.js"></script>
