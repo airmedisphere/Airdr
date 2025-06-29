@@ -1,4 +1,4 @@
-/* Modern TGDrive Styles */
+/* Modern AirDrive Styles */
 :root {
   /* Colors */
   --primary-50: #eff6ff;
@@ -730,6 +730,33 @@ body {
 .file-container.grid-view .file-meta {
   justify-content: center;
   flex-wrap: wrap;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  text-align: center;
+  color: var(--gray-500);
+}
+
+.empty-state svg {
+  margin-bottom: var(--space-4);
+  color: var(--gray-300);
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state p {
+  color: var(--gray-500);
 }
 
 /* Background Blur */

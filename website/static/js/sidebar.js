@@ -196,18 +196,6 @@ function setupModalHandlers() {
         passLogin.addEventListener('click', handleLogin);
     }
     
-    // Rename Modal
-    const renameCancel = document.getElementById('rename-cancel');
-    const renameCreate = document.getElementById('rename-create');
-    
-    if (renameCancel) {
-        renameCancel.addEventListener('click', () => closeModal('rename-file-folder'));
-    }
-    
-    if (renameCreate) {
-        renameCreate.addEventListener('click', handleRename);
-    }
-    
     // Upload Progress Modal
     const cancelUpload = document.getElementById('cancel-file-upload');
     if (cancelUpload) {
@@ -304,22 +292,8 @@ async function startUrlUpload() {
     try {
         closeModal('new-url-upload');
         
-        // Get file info first
-        const fileInfo = await getFileInfoFromUrl(fileUrl);
-        const fileName = fileInfo.file_name;
-        const fileSize = fileInfo.file_size;
-        
-        // Check file size limit
-        const maxFileSize = MAX_FILE_SIZE__SDGJDG; // Will be replaced by the server
-        if (fileSize > maxFileSize) {
-            throw new Error(`File size exceeds ${(maxFileSize / (1024 * 1024 * 1024)).toFixed(2)} GB limit`);
-        }
-        
-        // Start download
-        const downloadId = await startFileDownloadFromUrl(fileUrl, fileName, singleThreaded);
-        
-        // Show progress
-        showUploadProgress(downloadId, fileName, fileSize, 'url');
+        // Use the existing Start_URL_Upload function from apiHandler.js
+        await Start_URL_Upload();
         
     } catch (error) {
         console.error('Error starting URL upload:', error);
@@ -328,132 +302,26 @@ async function startUrlUpload() {
 }
 
 async function startSmartBulkImport() {
-    const channelInput = document.getElementById('smart-bulk-channel');
-    const startMsgInput = document.getElementById('smart-bulk-start-msg');
-    const endMsgInput = document.getElementById('smart-bulk-end-msg');
-    const importModeRadio = document.querySelector('input[name="import-mode"]:checked');
-    
-    if (!channelInput || !importModeRadio) return;
-    
-    const channel = channelInput.value.trim();
-    const startMsg = startMsgInput ? startMsgInput.value.trim() : '';
-    const endMsg = endMsgInput ? endMsgInput.value.trim() : '';
-    const importMode = importModeRadio.value;
-    
-    if (!channel) {
-        showNotification('Channel identifier is required', 'warning');
-        return;
-    }
-    
     try {
         closeModal('smart-bulk-import-modal');
         
-        // Parse message link if provided
-        let channelIdentifier = channel;
-        if (channel.includes('t.me/')) {
-            const match = channel.match(/t\.me\/([^\/]+)/);
-            if (match) {
-                channelIdentifier = match[1];
-            }
-        }
-        
-        const data = {
-            'channel': channelIdentifier,
-            'path': getCurrentPath(),
-            'import_mode': importMode
-        };
-        
-        // Add message range if provided
-        if (startMsg && endMsg) {
-            const startMsgId = parseInt(startMsg);
-            const endMsgId = parseInt(endMsg);
-            
-            if (isNaN(startMsgId) || isNaN(endMsgId)) {
-                throw new Error('Message IDs must be valid numbers');
-            }
-            
-            if (startMsgId >= endMsgId) {
-                throw new Error('Start message ID must be less than end message ID');
-            }
-            
-            data.start_msg_id = startMsgId;
-            data.end_msg_id = endMsgId;
-        }
-        
-        // Show progress
-        showUploadProgress('smart-import', channelIdentifier, 0, 'smart-import');
-        
-        const response = await postJson('/api/smartBulkImport', data);
-        
-        if (response.status === 'ok') {
-            const methodText = response.method === 'fast_import' ? 'Fast Import (Direct Reference)' : 'Regular Import (Copied to Storage)';
-            
-            showNotification(`Smart Bulk Import completed! Method: ${methodText}, Imported: ${response.imported}/${response.total} files`, 'success');
-            
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            throw new Error(response.status);
-        }
+        // Use the existing Start_Smart_Bulk_Import function from apiHandler.js
+        await Start_Smart_Bulk_Import();
         
     } catch (error) {
         console.error('Error starting smart bulk import:', error);
         showNotification(error.message || 'Failed to start smart bulk import', 'error');
-        closeModal('file-uploader');
     }
 }
 
 async function checkChannel() {
-    const channelInput = document.getElementById('smart-bulk-channel');
-    const channelStatus = document.getElementById('channel-status');
-    
-    if (!channelInput || !channelStatus) return;
-    
-    const channel = channelInput.value.trim();
-    
-    if (!channel) {
-        showNotification('Please enter a channel identifier', 'warning');
-        return;
-    }
-    
     try {
-        // Parse message link if provided
-        let channelIdentifier = channel;
-        if (channel.includes('t.me/')) {
-            const match = channel.match(/t\.me\/([^\/]+)/);
-            if (match) {
-                channelIdentifier = match[1];
-            }
-        }
-        
-        const result = await checkChannelAdmin(channelIdentifier);
-        
-        if (result.status === 'ok') {
-            channelStatus.className = 'channel-status success';
-            channelStatus.innerHTML = `
-                <strong>✅ Channel Found: ${result.channel_name}</strong><br>
-                <span>Bot Admin Status: ${result.is_admin ? '✅ Admin (Fast Import Available)' : '❌ Not Admin (Regular Import Only)'}</span><br>
-                <span>Recommended: ${result.is_admin ? '⚡ Fast Import or 🧠 Auto-Detect' : '📦 Regular Import or 🧠 Auto-Detect'}</span>
-            `;
-        } else {
-            channelStatus.className = 'channel-status error';
-            channelStatus.innerHTML = `
-                <strong>❌ Error: ${result.message}</strong><br>
-                <span>Please check the channel identifier and try again.</span>
-            `;
-        }
-        
-        channelStatus.style.display = 'block';
+        // Use the existing checkChannel function from apiHandler.js
+        await checkChannel();
         
     } catch (error) {
         console.error('Error checking channel:', error);
-        channelStatus.className = 'channel-status error';
-        channelStatus.innerHTML = `
-            <strong>❌ Error checking channel</strong><br>
-            <span>${error.message || error}</span>
-        `;
-        channelStatus.style.display = 'block';
+        showNotification(error.message || 'Failed to check channel', 'error');
     }
 }
 
@@ -486,47 +354,6 @@ async function handleLogin() {
     }
 }
 
-async function handleRename() {
-    const nameInput = document.getElementById('rename-name');
-    const modal = document.getElementById('rename-file-folder');
-    
-    if (!nameInput || !modal) return;
-    
-    const newName = nameInput.value.trim();
-    const itemId = modal.dataset.itemId;
-    const itemPath = modal.dataset.itemPath;
-    
-    if (!newName) {
-        showNotification('Name cannot be empty', 'warning');
-        return;
-    }
-    
-    if (!itemId || !itemPath) {
-        showNotification('Invalid item data', 'error');
-        return;
-    }
-    
-    try {
-        const data = {
-            'name': newName,
-            'path': itemPath + '/' + itemId
-        };
-        
-        const response = await postJson('/api/renameFileFolder', data);
-        
-        if (response.status === 'ok') {
-            closeModal('rename-file-folder');
-            showNotification('Item renamed successfully', 'success');
-            window.location.reload();
-        } else {
-            showNotification('Failed to rename item', 'error');
-        }
-    } catch (error) {
-        console.error('Rename error:', error);
-        showNotification('Failed to rename item', 'error');
-    }
-}
-
 function cancelFileUpload() {
     // Implementation depends on upload type
     const modal = document.getElementById('file-uploader');
@@ -544,105 +371,6 @@ function cancelFileUpload() {
     } else {
         closeModal('file-uploader');
     }
-}
-
-// Upload Progress Functions
-function showUploadProgress(uploadId, fileName, fileSize, type = 'file') {
-    const modal = document.getElementById('file-uploader');
-    if (!modal) return;
-    
-    // Set modal data
-    modal.dataset.uploadId = uploadId;
-    modal.dataset.uploadType = type;
-    
-    // Update UI
-    const filenameElement = document.getElementById('upload-filename');
-    const filesizeElement = document.getElementById('upload-filesize');
-    const statusElement = document.getElementById('upload-status');
-    const percentElement = document.getElementById('upload-percent');
-    const progressBar = document.getElementById('progress-bar');
-    
-    if (filenameElement) filenameElement.textContent = fileName;
-    if (filesizeElement) filesizeElement.textContent = fileSize ? convertBytes(fileSize) : 'Unknown';
-    if (statusElement) statusElement.textContent = 'Starting...';
-    if (percentElement) percentElement.textContent = '0%';
-    if (progressBar) progressBar.style.width = '0%';
-    
-    showModal('file-uploader');
-    
-    // Start progress monitoring
-    if (type === 'smart-import') {
-        // Smart import doesn't have traditional progress
-        if (statusElement) statusElement.textContent = 'Processing smart bulk import...';
-        if (progressBar) progressBar.style.width = '50%';
-    } else {
-        monitorUploadProgress(uploadId, type);
-    }
-}
-
-async function monitorUploadProgress(uploadId, type) {
-    const statusElement = document.getElementById('upload-status');
-    const percentElement = document.getElementById('upload-percent');
-    const progressBar = document.getElementById('progress-bar');
-    const filesizeElement = document.getElementById('upload-filesize');
-    
-    const updateProgress = async () => {
-        try {
-            let response;
-            
-            if (type === 'url') {
-                response = await postJson('/api/getFileDownloadProgress', { 'id': uploadId });
-            } else {
-                response = await postJson('/api/getUploadProgress', { 'id': uploadId });
-            }
-            
-            if (response.status === 'ok') {
-                const [status, current, total] = response.data;
-                
-                if (status === 'error') {
-                    if (statusElement) statusElement.textContent = 'Upload failed';
-                    showNotification('Upload failed', 'error');
-                    setTimeout(() => closeModal('file-uploader'), 2000);
-                    return;
-                }
-                
-                if (status === 'completed') {
-                    if (statusElement) statusElement.textContent = 'Upload completed';
-                    if (percentElement) percentElement.textContent = '100%';
-                    if (progressBar) progressBar.style.width = '100%';
-                    
-                    showNotification('Upload completed successfully', 'success');
-                    setTimeout(() => {
-                        closeModal('file-uploader');
-                        window.location.reload();
-                    }, 1500);
-                    return;
-                }
-                
-                // Update progress
-                const percentage = total > 0 ? (current / total) * 100 : 0;
-                
-                if (statusElement) statusElement.textContent = status;
-                if (percentElement) percentElement.textContent = `${percentage.toFixed(1)}%`;
-                if (progressBar) progressBar.style.width = `${percentage}%`;
-                if (filesizeElement && total > 0) {
-                    filesizeElement.textContent = convertBytes(total);
-                }
-                
-                // Continue monitoring
-                setTimeout(updateProgress, 2000);
-            } else {
-                throw new Error(response.status);
-            }
-        } catch (error) {
-            console.error('Progress monitoring error:', error);
-            if (statusElement) statusElement.textContent = 'Upload failed';
-            showNotification('Upload monitoring failed', 'error');
-        }
-    };
-    
-    // Start monitoring
-    setTimeout(updateProgress, 1000);
 }
 
 // Storage Info Functions
@@ -695,38 +423,7 @@ function openStorageAnalytics() {
     window.open('/storage', '_blank');
 }
 
-// API Helper Functions (these should be implemented in apiHandler.js)
-async function getFileInfoFromUrl(url) {
-    const data = { 'url': url };
-    const response = await postJson('/api/getFileInfoFromUrl', data);
-    if (response.status === 'ok') {
-        return response.data;
-    } else {
-        throw new Error(`Error getting file info: ${response.status}`);
-    }
-}
-
-async function startFileDownloadFromUrl(url, filename, singleThreaded) {
-    const data = { 
-        'url': url, 
-        'path': getCurrentPath(), 
-        'filename': filename, 
-        'singleThreaded': singleThreaded 
-    };
-    const response = await postJson('/api/startFileDownloadFromUrl', data);
-    if (response.status === 'ok') {
-        return response.id;
-    } else {
-        throw new Error(`Error starting file download: ${response.status}`);
-    }
-}
-
-async function checkChannelAdmin(channel) {
-    const data = { 'channel': channel };
-    return await postJson('/api/checkChannelAdmin', data);
-}
-
 // Export functions for other modules
 window.showNewFolderModal = showNewFolderModal;
-window.showUploadProgress = showUploadProgress;
 window.loadStorageInfo = loadStorageInfo;
+window.openStorageAnalytics = openStorageAnalytics;

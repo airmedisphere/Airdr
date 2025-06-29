@@ -1,4 +1,4 @@
-// Modern TGDrive Main JavaScript
+// Modern AirDrive Main JavaScript
 
 // Global state
 let currentView = 'list';
@@ -349,6 +349,7 @@ function showContextMenu(event, itemId) {
     
     const isFolder = item.dataset.type === 'folder';
     const itemName = item.dataset.name;
+    const itemPath = item.dataset.path + '/' + itemId;
     
     // Create context menu items
     const menuItems = [
@@ -358,7 +359,7 @@ function showContextMenu(event, itemId) {
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>`,
             label: 'Rename',
-            action: () => showRenameModal(itemId, itemName)
+            action: () => showRenameModal(itemId, itemName, itemPath)
         },
         {
             icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -367,7 +368,7 @@ function showContextMenu(event, itemId) {
                 <path d="M5 19v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"></path>
             </svg>`,
             label: 'Move',
-            action: () => showMoveModal(itemId, itemName)
+            action: () => showMoveModal(itemPath, itemName)
         },
         {
             icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -375,7 +376,7 @@ function showContextMenu(event, itemId) {
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>`,
             label: 'Copy',
-            action: () => showCopyModal(itemId, itemName)
+            action: () => showCopyModal(itemPath, itemName)
         }
     ];
     
@@ -388,7 +389,7 @@ function showContextMenu(event, itemId) {
                 <line x1="12" y1="2" x2="12" y2="15"></line>
             </svg>`,
             label: 'Share',
-            action: () => shareFolder(itemId)
+            action: () => shareFolder(itemId, itemPath)
         });
     } else {
         menuItems.push({
@@ -398,7 +399,7 @@ function showContextMenu(event, itemId) {
                 <line x1="12" y1="2" x2="12" y2="15"></line>
             </svg>`,
             label: 'Share',
-            action: () => shareFile(itemId, itemName)
+            action: () => shareFile(itemId, itemName, itemPath)
         });
     }
     
@@ -410,7 +411,7 @@ function showContextMenu(event, itemId) {
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
         </svg>`,
         label: 'Move to trash',
-        action: () => trashItem(itemId),
+        action: () => trashItem(itemId, itemPath),
         className: 'danger'
     });
     
@@ -665,60 +666,122 @@ function updateSharedFolderNavigation(response) {
     sections[0].href = `/?path=/share_${removeSlash(response.auth_home_path)}&auth=${auth}`;
 }
 
-// Action functions (to be implemented by other modules)
-function showRenameModal(itemId, itemName) {
-    // Implementation in fileClickHandler.js
-    if (window.renameFileFolder) {
-        window.renameFileFolder(itemId, itemName);
+// Action functions
+function showRenameModal(itemId, itemName, itemPath) {
+    const modal = document.getElementById('rename-file-folder');
+    const nameInput = document.getElementById('rename-name');
+    
+    if (modal && nameInput) {
+        nameInput.value = itemName;
+        modal.dataset.itemId = itemId;
+        modal.dataset.itemPath = itemPath;
+        showModal('rename-file-folder');
     }
 }
 
-function showMoveModal(itemId, itemName) {
-    // Implementation in moveCopy.js
-    if (window.showMoveModal) {
-        window.showMoveModal(itemId, itemName);
+async function trashItem(itemId, itemPath) {
+    try {
+        const data = {
+            'path': itemPath,
+            'trash': true
+        };
+        
+        const response = await postJson('/api/trashFileFolder', data);
+        
+        if (response.status === 'ok') {
+            showNotification('Item moved to trash successfully', 'success');
+            window.location.reload();
+        } else {
+            showNotification('Failed to move item to trash', 'error');
+        }
+    } catch (error) {
+        console.error('Error trashing item:', error);
+        showNotification('Failed to move item to trash', 'error');
     }
 }
 
-function showCopyModal(itemId, itemName) {
-    // Implementation in moveCopy.js
-    if (window.showCopyModal) {
-        window.showCopyModal(itemId, itemName);
+async function restoreItem(itemId) {
+    const item = document.querySelector(`[data-id="${itemId}"]`);
+    if (!item) return;
+    
+    const itemPath = item.dataset.path + '/' + itemId;
+    
+    try {
+        const data = {
+            'path': itemPath,
+            'trash': false
+        };
+        
+        const response = await postJson('/api/trashFileFolder', data);
+        
+        if (response.status === 'ok') {
+            showNotification('Item restored successfully', 'success');
+            window.location.reload();
+        } else {
+            showNotification('Failed to restore item', 'error');
+        }
+    } catch (error) {
+        console.error('Error restoring item:', error);
+        showNotification('Failed to restore item', 'error');
     }
 }
 
-function shareFile(itemId, itemName) {
-    // Implementation in fileClickHandler.js
-    if (window.shareFile) {
-        window.shareFile(itemId, itemName);
+async function deleteItem(itemId) {
+    const item = document.querySelector(`[data-id="${itemId}"]`);
+    if (!item) return;
+    
+    const itemPath = item.dataset.path + '/' + itemId;
+    
+    if (!confirm('Are you sure you want to permanently delete this item? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const data = {
+            'path': itemPath
+        };
+        
+        const response = await postJson('/api/deleteFileFolder', data);
+        
+        if (response.status === 'ok') {
+            showNotification('Item deleted permanently', 'success');
+            window.location.reload();
+        } else {
+            showNotification('Failed to delete item', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        showNotification('Failed to delete item', 'error');
     }
 }
 
-function shareFolder(itemId) {
-    // Implementation in fileClickHandler.js
-    if (window.shareFolder) {
-        window.shareFolder(itemId);
+async function shareFile(itemId, itemName, itemPath) {
+    const fileName = itemName.toLowerCase();
+    const rootUrl = getRootUrl();
+    
+    let link;
+    if (fileName.endsWith('.pdf')) {
+        link = `${rootUrl}/pdf-viewer?path=${itemPath}`;
+    } else if (isVideoFile(fileName)) {
+        link = `${rootUrl}/stream?url=${rootUrl}/file?path=${itemPath}`;
+    } else {
+        link = `${rootUrl}/file?path=${itemPath}`;
     }
+    
+    copyTextToClipboard(link);
 }
 
-function trashItem(itemId) {
-    // Implementation in fileClickHandler.js
-    if (window.trashFileFolder) {
-        window.trashFileFolder(itemId);
-    }
-}
-
-function restoreItem(itemId) {
-    // Implementation in fileClickHandler.js
-    if (window.restoreFileFolder) {
-        window.restoreFileFolder(itemId);
-    }
-}
-
-function deleteItem(itemId) {
-    // Implementation in fileClickHandler.js
-    if (window.deleteFileFolder) {
-        window.deleteFileFolder(itemId);
+async function shareFolder(itemId, itemPath) {
+    try {
+        const rootUrl = getRootUrl();
+        const auth = await getFolderShareAuth(itemPath);
+        const path = itemPath.slice(1); // Remove leading slash
+        
+        const link = `${rootUrl}/?path=/share_${path}&auth=${auth}`;
+        copyTextToClipboard(link);
+    } catch (error) {
+        console.error('Error sharing folder:', error);
+        showNotification('Failed to generate share link', 'error');
     }
 }
 
@@ -730,3 +793,9 @@ window.showNotification = showNotification;
 window.showError = showError;
 window.loadCurrentDirectory = loadCurrentDirectory;
 window.currentDirectory = currentDirectory;
+window.showRenameModal = showRenameModal;
+window.trashItem = trashItem;
+window.restoreItem = restoreItem;
+window.deleteItem = deleteItem;
+window.shareFile = shareFile;
+window.shareFolder = shareFolder;
