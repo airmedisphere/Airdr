@@ -58,6 +58,11 @@ function showDirectory(data) {
     if (window.updateBreadcrumb) {
         window.updateBreadcrumb();
     }
+
+    // Update storage display after directory changes
+    if (window.refreshStorageAfterOperation) {
+        window.refreshStorageAfterOperation();
+    }
 }
 
 document.getElementById('search-form').addEventListener('submit', async (event) => {
@@ -92,6 +97,10 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('get-password').style.opacity = '1';
         } else {
             getCurrentDirectoryWithSort()
+            // Initialize storage display after login
+            if (window.initializeStorage) {
+                window.initializeStorage();
+            }
         }
     }
 });

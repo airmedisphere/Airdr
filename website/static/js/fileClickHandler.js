@@ -116,6 +116,10 @@ document.getElementById('rename-create').addEventListener('click', async () => {
     const response = await postJson('/api/renameFileFolder', data)
     if (response.status === 'ok') {
         alert('File/Folder Renamed Successfully')
+        // Refresh storage after rename
+        if (window.refreshStorageAfterOperation) {
+            window.refreshStorageAfterOperation();
+        }
         window.location.reload();
     } else {
         alert('Failed to rename file/folder')
@@ -163,6 +167,10 @@ async function trashFileFolder() {
 
     if (response.status === 'ok') {
         alert('File/Folder Sent to Trash Successfully')
+        // Refresh storage after trash
+        if (window.refreshStorageAfterOperation) {
+            window.refreshStorageAfterOperation();
+        }
         window.location.reload();
     } else {
         alert('Failed to Send File/Folder to Trash')
@@ -181,6 +189,10 @@ async function restoreFileFolder() {
 
     if (response.status === 'ok') {
         alert('File/Folder Restored Successfully')
+        // Refresh storage after restore
+        if (window.refreshStorageAfterOperation) {
+            window.refreshStorageAfterOperation();
+        }
         window.location.reload();
     } else {
         alert('Failed to Restored File/Folder')
@@ -198,6 +210,10 @@ async function deleteFileFolder() {
 
     if (response.status === 'ok') {
         alert('File/Folder Deleted Successfully')
+        // Refresh storage after delete
+        if (window.refreshStorageAfterOperation) {
+            window.refreshStorageAfterOperation();
+        }
         window.location.reload();
     } else {
         alert('Failed to Delete File/Folder')

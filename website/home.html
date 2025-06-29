@@ -60,6 +60,22 @@
                 <a class="selected-item" href="/?path=/"><img src="static/assets/home-icon.svg" />Home</a>
                 <a class="unselected-item" href="/?path=/trash"><img src="static/assets/trash-icon.svg" />Trash</a>
             </div>
+
+            <!-- Storage Info Section -->
+            <div class="storage-info">
+                <div class="storage-header">
+                    <h3>Storage</h3>
+                    <div class="storage-used">
+                        <span id="storage-amount">Loading...</span>
+                    </div>
+                </div>
+                <div class="storage-bar">
+                    <div class="storage-progress" id="storage-progress"></div>
+                </div>
+                <button class="storage-details-btn" id="storage-details-btn">
+                    View Details
+                </button>
+            </div>
         </div>
         <!-- Sidebar End -->
 
@@ -200,6 +216,7 @@
     <script src="static/js/sorting.js"></script>
     <script src="static/js/moveCopy.js"></script>
     <script src="static/js/breadcrumb.js"></script>
+    <script src="static/js/storage.js"></script>
     <script src="static/js/main.js"></script>
     <script src="static/js/mobile.js"></script>
 </body>

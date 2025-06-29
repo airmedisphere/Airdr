@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Storage Analytics - AirDrive</title>
+    <link rel="stylesheet" href="static/storage.css" />
+
+    <!-- Fonts Start -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet" />
+    <!-- Fonts End -->
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <button class="back-btn" onclick="window.location.href='/'">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                    Back to Drive
+                </button>
+                <h1>Storage Analytics</h1>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading storage analytics...</p>
+        </div>
+
+        <!-- Main Content -->
+        <div id="content" class="content" style="display: none;">
+            <!-- Overview Cards -->
+            <div class="overview-cards">
+                <div class="card">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Storage</h3>
+                        <p id="total-storage">0 B</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Files</h3>
+                        <p id="total-files">0</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Folders</h3>
+                        <p id="total-folders">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <!-- Folder Breakdown -->
+                <div class="chart-container">
+                    <h2>Storage by Folder</h2>
+                    <div class="folder-breakdown" id="folder-breakdown">
+                        <!-- Folder breakdown will be populated here -->
+                    </div>
+                </div>
+
+                <!-- File Type Breakdown -->
+                <div class="chart-container">
+                    <h2>Storage by File Type</h2>
+                    <div class="file-type-breakdown" id="file-type-breakdown">
+                        <!-- File type breakdown will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Largest Files -->
+            <div class="largest-files-section">
+                <h2>Largest Files</h2>
+                <div class="largest-files" id="largest-files">
+                    <!-- Largest files will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error" style="display: none;">
+            <div class="error-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48">
+                    <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"/>
+                </svg>
+            </div>
+            <h2>Error Loading Analytics</h2>
+            <p id="error-message">Failed to load storage analytics. Please try again.</p>
+            <button class="retry-btn" onclick="loadStorageAnalytics()">Retry</button>
+        </div>
+    </div>
+
+    <script src="static/js/extra.js"></script>
+    <script src="static/js/apiHandler.js"></script>
+    <script src="static/js/storageAnalytics.js"></script>
+</body>
+
+</html>

@@ -80,6 +80,10 @@ async function createNewFolder() {
             const json = await postJson('/api/createNewFolder', data)
 
             if (json.status === 'ok') {
+                // Refresh storage after creating folder
+                if (window.refreshStorageAfterOperation) {
+                    window.refreshStorageAfterOperation();
+                }
                 window.location.reload();
             } else {
                 alert(json.status)
@@ -236,6 +240,10 @@ async function handleUpload2(id) {
         else if (data[0] === 'completed') {
             clearInterval(interval);
             alert('Upload Completed')
+            // Refresh storage after upload
+            if (window.refreshStorageAfterOperation) {
+                window.refreshStorageAfterOperation();
+            }
             window.location.reload();
         }
     }, 3000)
