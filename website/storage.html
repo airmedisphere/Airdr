@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Storage Analytics - AirDrive</title>
+    <link rel="stylesheet" href="static/storage.css" />
+
+    <!-- Fonts Start -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet" />
+    <!-- Fonts End -->
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <button class="back-btn" onclick="goBack()">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
+                        </svg>
+                        Back to Drive
+                    </button>
+                    <div class="header-title">
+                        <img src="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png" alt="Drive" />
+                        <h1>Storage Analytics</h1>
+                    </div>
+                </div>
+                <div class="refresh-btn" onclick="refreshData()">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                    Refresh
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div>Loading storage analytics...</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="main-content" style="display: none;">
+            <!-- Summary Cards -->
+            <div class="summary-section">
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/>
+                        </svg>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-value" id="total-size">0 B</div>
+                        <div class="summary-label">Total Storage Used</div>
+                        <div class="summary-sublabel">Unlimited Available</div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-value" id="total-files">0</div>
+                        <div class="summary-label">Total Files</div>
+                        <div class="summary-sublabel">Across all folders</div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-value" id="total-folders">0</div>
+                        <div class="summary-label">Total Folders</div>
+                        <div class="summary-sublabel">Directory structure</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Storage by File Type</h3>
+                        <div class="chart-toggle">
+                            <button class="toggle-btn active" data-chart="size">By Size</button>
+                            <button class="toggle-btn" data-chart="count">By Count</button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Storage by Folder</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="folderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Tables -->
+            <div class="tables-section">
+                <!-- File Types Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>File Types Breakdown</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="analytics-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Files</th>
+                                    <th>Size</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="file-types-table">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Folders Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Folders Breakdown</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="analytics-table">
+                            <thead>
+                                <tr>
+                                    <th>Folder Path</th>
+                                    <th>Files</th>
+                                    <th>Subfolders</th>
+                                    <th>Size</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="folders-table">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Largest Files Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Largest Files</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="analytics-table">
+                            <thead>
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th>Location</th>
+                                    <th>Upload Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="largest-files-table">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Extensions Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>File Extensions</h3>
+                        <div class="table-toggle">
+                            <button class="toggle-btn active" data-table="ext-count">By Count</button>
+                            <button class="toggle-btn" data-table="ext-size">By Size</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="analytics-table">
+                            <thead>
+                                <tr id="extensions-table-header">
+                                    <th>Extension</th>
+                                    <th>Files</th>
+                                    <th>Total Size</th>
+                                </tr>
+                            </thead>
+                            <tbody id="extensions-table">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/extra.js"></script>
+    <script src="static/js/storage.js"></script>
+</body>
+
+</html>

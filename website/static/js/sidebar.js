@@ -140,3 +140,70 @@ document.getElementById('smart-bulk-check').addEventListener('click', checkChann
 document.getElementById('smart-bulk-start').addEventListener('click', Start_Smart_Bulk_Import);
 
 // Smart Bulk Import End
+
+// Storage Info Functionality
+async function loadStorageInfo() {
+    try {
+        const response = await fetch('/api/getStorageSummary', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                password: getPassword()
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'ok') {
+            updateStorageDisplay(data.data);
+        } else {
+            console.error('Failed to load storage info:', data.status);
+        }
+    } catch (error) {
+        console.error('Error loading storage info:', error);
+    }
+}
+
+function updateStorageDisplay(storageData) {
+    const storageUsedElement = document.getElementById('storage-used');
+    const storageProgressElement = document.getElementById('storage-progress');
+    
+    if (storageUsedElement) {
+        storageUsedElement.textContent = storageData.formatted_size;
+    }
+    
+    // For visual effect, show a small progress (since it's unlimited)
+    // We'll show progress based on a reasonable scale (e.g., up to 100GB = 100%)
+    if (storageProgressElement) {
+        const maxVisualSize = 100 * 1024 * 1024 * 1024; // 100GB
+        const progressPercentage = Math.min((storageData.total_size / maxVisualSize) * 100, 100);
+        storageProgressElement.style.width = `${progressPercentage}%`;
+    }
+}
+
+function openStorageAnalytics() {
+    window.open('/storage', '_blank');
+}
+
+// Load storage info when page loads (only if not in special paths)
+document.addEventListener('DOMContentLoaded', function() {
+    if (!isTrash && !isSearch && !isShare) {
+        // Small delay to ensure other scripts are loaded
+        setTimeout(() => {
+            if (getPassword()) {
+                loadStorageInfo();
+            }
+        }, 1000);
+    }
+});
+
+// Refresh storage info when directory changes
+if (window.addEventListener) {
+    window.addEventListener('focus', function() {
+        if (!isTrash && !isSearch && !isShare && getPassword()) {
+            loadStorageInfo();
+        }
+    });
+}

@@ -65,6 +65,28 @@
                 <a class="selected-item" href="/?path=/"><img src="static/assets/home-icon.svg" />Home</a>
                 <a class="unselected-item" href="/?path=/trash"><img src="static/assets/trash-icon.svg" />Trash</a>
             </div>
+
+            <!-- Storage Info Section -->
+            <div class="storage-info" id="storage-info">
+                <div class="storage-header">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/>
+                    </svg>
+                    <span>Storage</span>
+                </div>
+                <div class="storage-usage">
+                    <div class="storage-text">
+                        <span id="storage-used">Loading...</span>
+                        <span class="storage-total">/ Unlimited</span>
+                    </div>
+                    <div class="storage-bar">
+                        <div class="storage-progress" id="storage-progress"></div>
+                    </div>
+                </div>
+                <button class="storage-details-btn" onclick="openStorageAnalytics()">
+                    View Details
+                </button>
+            </div>
         </div>
         <!-- Sidebar End -->
 

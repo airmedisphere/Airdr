@@ -15,6 +15,7 @@ from utils.extra import auto_ping_website, convert_class_to_dict, reset_cache_di
 from utils.streamer import media_streamer
 from utils.uploader import start_file_uploader
 from utils.logger import Logger
+from utils.storage_analytics import STORAGE_ANALYTICS
 import urllib.parse
 
 
@@ -50,6 +51,11 @@ async def stream_page():
 @app.get("/pdf-viewer")
 async def pdf_viewer_page():
     return FileResponse("website/PDFViewer.html")
+
+
+@app.get("/storage")
+async def storage_page():
+    return FileResponse("website/storage.html")
 
 
 @app.get("/static/{file_path:path}")
@@ -158,6 +164,38 @@ async def api_get_directory(request: Request):
         folder_data = DRIVE_DATA.get_directory(data["path"])
         folder_data = convert_class_to_dict(folder_data, isObject=True, showtrash=False, sort_by=sort_by, sort_order=sort_order)
     return JSONResponse({"status": "ok", "data": folder_data, "auth_home_path": None})
+
+
+@app.post("/api/getStorageSummary")
+async def get_storage_summary(request: Request):
+    data = await request.json()
+
+    if data["password"] != ADMIN_PASSWORD:
+        return JSONResponse({"status": "Invalid password"})
+
+    logger.info("getStorageSummary")
+    try:
+        summary = STORAGE_ANALYTICS.get_storage_summary()
+        return JSONResponse({"status": "ok", "data": summary})
+    except Exception as e:
+        logger.error(f"Error getting storage summary: {e}")
+        return JSONResponse({"status": str(e)})
+
+
+@app.post("/api/getStorageAnalytics")
+async def get_storage_analytics(request: Request):
+    data = await request.json()
+
+    if data["password"] != ADMIN_PASSWORD:
+        return JSONResponse({"status": "Invalid password"})
+
+    logger.info("getStorageAnalytics")
+    try:
+        analytics = STORAGE_ANALYTICS.get_detailed_analytics()
+        return JSONResponse({"status": "ok", "data": analytics})
+    except Exception as e:
+        logger.error(f"Error getting storage analytics: {e}")
+        return JSONResponse({"status": str(e)})
 
 
 SAVE_PROGRESS = {}
