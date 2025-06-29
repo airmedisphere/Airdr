@@ -8,10 +8,10 @@ logger = Logger(__name__)
 class StorageAnalytics:
     def __init__(self):
         self.file_types = {
-            'video': ['.mp4', '.mkv', '.webm', '.mov', '.avi', '.ts', '.ogv', '.m4v', '.flv', '.wmv', '.3gp', '.mpg', '.mpeg'],
-            'pdf': ['.pdf'],
-            'image': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.ico', '.tiff', '.tif'],
-            'document': ['.doc', '.docx', '.txt', '.rtf', '.odt', '.pages', '.tex', '.wpd', '.xls', '.xlsx', '.ppt', '.pptx'],
+            'videos': ['.mp4', '.mkv', '.webm', '.mov', '.avi', '.ts', '.ogv', '.m4v', '.flv', '.wmv', '.3gp', '.mpg', '.mpeg'],
+            'pdfs': ['.pdf'],
+            'images': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.ico', '.tiff', '.tif'],
+            'documents': ['.doc', '.docx', '.txt', '.rtf', '.odt', '.pages', '.tex', '.wpd', '.xls', '.xlsx', '.ppt', '.pptx'],
             'audio': ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.wma', '.m4a', '.opus', '.aiff'],
             'archive': ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz'],
             'code': ['.py', '.js', '.html', '.css', '.cpp', '.c', '.java', '.php', '.rb', '.go', '.rs', '.swift']
@@ -36,10 +36,10 @@ class StorageAnalytics:
             'total_files': 0,
             'total_folders': 0,
             'type_breakdown': {
-                'video': {'size': 0, 'count': 0},
-                'pdf': {'size': 0, 'count': 0},
-                'image': {'size': 0, 'count': 0},
-                'document': {'size': 0, 'count': 0},
+                'videos': {'size': 0, 'count': 0},
+                'pdfs': {'size': 0, 'count': 0},
+                'images': {'size': 0, 'count': 0},
+                'documents': {'size': 0, 'count': 0},
                 'audio': {'size': 0, 'count': 0},
                 'archive': {'size': 0, 'count': 0},
                 'code': {'size': 0, 'count': 0},

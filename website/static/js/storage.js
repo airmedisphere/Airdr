@@ -79,9 +79,13 @@ function displayAnalytics(data) {
 
 // Display summary cards
 function displaySummary(summary) {
-    document.getElementById('total-size').textContent = summary.formatted_size;
-    document.getElementById('total-files').textContent = summary.total_files.toLocaleString();
-    document.getElementById('total-folders').textContent = summary.total_folders.toLocaleString();
+    const totalSizeEl = document.getElementById('total-size');
+    const totalFilesEl = document.getElementById('total-files');
+    const totalFoldersEl = document.getElementById('total-folders');
+    
+    if (totalSizeEl) totalSizeEl.textContent = summary.formatted_size;
+    if (totalFilesEl) totalFilesEl.textContent = summary.total_files.toLocaleString();
+    if (totalFoldersEl) totalFoldersEl.textContent = summary.total_folders.toLocaleString();
 }
 
 // Display charts
@@ -92,17 +96,20 @@ function displayCharts(data) {
 
 // Create file type chart
 function createTypeChart(typeData) {
-    const ctx = document.getElementById('typeChart').getContext('2d');
+    const ctx = document.getElementById('typeChart');
+    if (!ctx) return;
+    
+    const ctxContext = ctx.getContext('2d');
     
     const labels = Object.keys(typeData);
     const sizeData = labels.map(type => typeData[type].size);
     const countData = labels.map(type => typeData[type].count);
     
     const colors = {
-        video: '#f44336',
-        pdf: '#e53e3e',
-        image: '#4caf50',
-        document: '#2196f3',
+        videos: '#f44336',
+        pdfs: '#e53e3e', 
+        images: '#4caf50',
+        documents: '#2196f3',
         audio: '#9c27b0',
         archive: '#ff9800',
         code: '#795548',
@@ -115,7 +122,7 @@ function createTypeChart(typeData) {
         typeChart.destroy();
     }
     
-    typeChart = new Chart(ctx, {
+    typeChart = new Chart(ctxContext, {
         type: 'doughnut',
         data: {
             labels: labels.map(type => type.charAt(0).toUpperCase() + type.slice(1)),
@@ -163,7 +170,10 @@ function createTypeChart(typeData) {
 
 // Create folder chart
 function createFolderChart(folderData) {
-    const ctx = document.getElementById('folderChart').getContext('2d');
+    const ctx = document.getElementById('folderChart');
+    if (!ctx) return;
+    
+    const ctxContext = ctx.getContext('2d');
     
     // Get top 10 folders by size
     const sortedFolders = Object.entries(folderData)
@@ -177,7 +187,7 @@ function createFolderChart(folderData) {
         folderChart.destroy();
     }
     
-    folderChart = new Chart(ctx, {
+    folderChart = new Chart(ctxContext, {
         type: 'bar',
         data: {
             labels: labels,
@@ -238,6 +248,8 @@ function displayTables(data) {
 // Display file types table
 function displayFileTypesTable(typeData) {
     const tbody = document.getElementById('file-types-table');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     const sortedTypes = Object.entries(typeData)
@@ -269,6 +281,8 @@ function displayFileTypesTable(typeData) {
 // Display folders table
 function displayFoldersTable(folderData) {
     const tbody = document.getElementById('folders-table');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     const sortedFolders = Object.entries(folderData)
@@ -299,6 +313,8 @@ function displayFoldersTable(folderData) {
 // Display largest files table
 function displayLargestFilesTable(filesData) {
     const tbody = document.getElementById('largest-files-table');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     filesData.forEach(file => {
@@ -324,6 +340,8 @@ function displayLargestFilesTable(filesData) {
 // Display extensions table
 function displayExtensionsTable(extensionStats) {
     const tbody = document.getElementById('extensions-table');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     // Default to showing by count
@@ -362,6 +380,8 @@ function toggleExtensionsTable(tableType) {
     if (!analyticsData || !analyticsData.extension_stats) return;
     
     const tbody = document.getElementById('extensions-table');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     const data = tableType === 'ext-count' ? 
@@ -381,17 +401,31 @@ function toggleExtensionsTable(tableType) {
 
 // Utility functions
 function showLoading(show) {
-    document.getElementById('loading').style.display = show ? 'flex' : 'none';
-    document.getElementById('main-content').style.display = show ? 'none' : 'block';
+    const loadingEl = document.getElementById('loading');
+    const mainContentEl = document.getElementById('main-content');
+    
+    if (loadingEl) loadingEl.style.display = show ? 'flex' : 'none';
+    if (mainContentEl) mainContentEl.style.display = show ? 'none' : 'block';
 }
 
 function showError(message) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ef4444;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        z-index: 1000;
+        max-width: 400px;
+    `;
     errorDiv.textContent = message;
     
-    const container = document.querySelector('.container');
-    container.appendChild(errorDiv);
+    document.body.appendChild(errorDiv);
     
     setTimeout(() => {
         errorDiv.remove();
