@@ -416,33 +416,50 @@ function showContextMenu(event, itemId) {
     });
     
     // Render menu
-    contextMenu.innerHTML = menuItems.map(item => {
+    contextMenu.innerHTML = menuItems.map((item, index) => {
         if (item === 'divider') {
             return '<div class="context-menu-divider"></div>';
         }
         
         return `
-            <div class="context-menu-item ${item.className || ''}" data-action="${menuItems.indexOf(item)}">
+            <div class="context-menu-item ${item.className || ''}" data-action="${index}">
                 ${item.icon}
                 ${item.label}
             </div>
         `;
     }).join('');
     
-    // Position menu
+    // Position menu - improved positioning to avoid going off screen
     const rect = event.target.getBoundingClientRect();
-    contextMenu.style.left = `${rect.left}px`;
-    contextMenu.style.top = `${rect.bottom + 5}px`;
+    const menuRect = contextMenu.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let left = rect.left;
+    let top = rect.bottom + 5;
+    
+    // Adjust horizontal position if menu would go off screen
+    if (left + 200 > viewportWidth) { // 200 is approximate menu width
+        left = rect.right - 200;
+    }
+    
+    // Adjust vertical position if menu would go off screen
+    if (top + 300 > viewportHeight) { // 300 is approximate menu height
+        top = rect.top - 300;
+    }
+    
+    contextMenu.style.left = `${Math.max(10, left)}px`;
+    contextMenu.style.top = `${Math.max(10, top)}px`;
     
     // Show menu
     contextMenu.classList.add('show');
     
     // Add click handlers
-    contextMenu.querySelectorAll('.context-menu-item').forEach((item, index) => {
-        item.addEventListener('click', () => {
-            const menuItem = menuItems[index];
-            if (menuItem && menuItem.action) {
-                menuItem.action();
+    contextMenu.querySelectorAll('.context-menu-item').forEach((menuItem, index) => {
+        menuItem.addEventListener('click', () => {
+            const actionItem = menuItems[index];
+            if (actionItem && actionItem.action) {
+                actionItem.action();
             }
             closeContextMenu();
         });
@@ -680,6 +697,10 @@ function showRenameModal(itemId, itemName, itemPath) {
 }
 
 async function trashItem(itemId, itemPath) {
+    if (!confirm('Are you sure you want to move this item to trash?')) {
+        return;
+    }
+    
     try {
         const data = {
             'path': itemPath,
@@ -692,7 +713,7 @@ async function trashItem(itemId, itemPath) {
             showNotification('Item moved to trash successfully', 'success');
             window.location.reload();
         } else {
-            showNotification('Failed to move item to trash', 'error');
+            showNotification('Failed to move item to trash: ' + response.status, 'error');
         }
     } catch (error) {
         console.error('Error trashing item:', error);
@@ -718,7 +739,7 @@ async function restoreItem(itemId) {
             showNotification('Item restored successfully', 'success');
             window.location.reload();
         } else {
-            showNotification('Failed to restore item', 'error');
+            showNotification('Failed to restore item: ' + response.status, 'error');
         }
     } catch (error) {
         console.error('Error restoring item:', error);
@@ -747,7 +768,7 @@ async function deleteItem(itemId) {
             showNotification('Item deleted permanently', 'success');
             window.location.reload();
         } else {
-            showNotification('Failed to delete item', 'error');
+            showNotification('Failed to delete item: ' + response.status, 'error');
         }
     } catch (error) {
         console.error('Error deleting item:', error);
@@ -799,3 +820,5 @@ window.restoreItem = restoreItem;
 window.deleteItem = deleteItem;
 window.shareFile = shareFile;
 window.shareFolder = shareFolder;
+window.showMoveModal = showMoveModal;
+window.showCopyModal = showCopyModal;

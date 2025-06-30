@@ -1256,6 +1256,30 @@ body {
   white-space: nowrap;
 }
 
+.selection-display {
+  padding: var(--space-3);
+  background: var(--primary-50);
+  border: 1px solid var(--primary-200);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  font-size: 0.875rem;
+}
+
+.selected-folder-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--primary-700);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.selected-folder-path {
+  color: var(--primary-600);
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
 /* Mobile Styles */
 @media (max-width: 768px) {
   .mobile-menu-toggle {

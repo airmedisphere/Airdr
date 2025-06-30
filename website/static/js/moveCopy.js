@@ -41,11 +41,11 @@ function renderFolderTree(tree, container, level = 0, excludePath = null, isExpa
                 <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
             </svg>
         </span>
-    ` : '<span class="folder-expand-btn-spacer"></span>';
+    ` : '<span class="folder-expand-btn-spacer" style="width: 20px;"></span>';
     
     folderItem.innerHTML = `
         ${expandButton}
-        <svg class="folder-icon" viewBox="0 0 24 24">
+        <svg class="folder-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
             <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
         </svg>
         <span class="folder-name">${tree.name === '/' ? 'Root' : tree.name}</span>
@@ -119,7 +119,7 @@ function updateSelectionDisplay(folderName, folderPath) {
     if (selectionDisplay) {
         selectionDisplay.innerHTML = `
             <div class="selected-folder-info">
-                <svg viewBox="0 0 24 24" width="16" height="16">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
                 </svg>
                 <span>Selected: <strong>${folderName}</strong></span>
@@ -243,10 +243,9 @@ async function showMoveCopyModal(itemPath, itemName, operation = 'move') {
         }
         
         // Show modal
-        document.getElementById('bg-blur').style.zIndex = '2';
-        document.getElementById('bg-blur').style.opacity = '0.1';
-        document.getElementById('move-copy-modal').style.zIndex = '3';
-        document.getElementById('move-copy-modal').style.opacity = '1';
+        if (window.showModal) {
+            window.showModal('move-copy-modal');
+        }
         
     } catch (error) {
         alert('Failed to load folder tree: ' + error.message);
@@ -255,14 +254,9 @@ async function showMoveCopyModal(itemPath, itemName, operation = 'move') {
 
 // Close move/copy modal
 function closeMoveCopyModal() {
-    document.getElementById('bg-blur').style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById('bg-blur').style.zIndex = '-1';
-    }, 300);
-    document.getElementById('move-copy-modal').style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById('move-copy-modal').style.zIndex = '-1';
-    }, 300);
+    if (window.closeModal) {
+        window.closeModal('move-copy-modal');
+    }
     
     selectedDestinationPath = null;
     currentMoveCopyItem = null;
@@ -284,14 +278,26 @@ async function moveItem() {
         const response = await postJson('/api/moveFileFolder', data);
         
         if (response.status === 'ok') {
-            alert('Item moved successfully');
+            if (window.showNotification) {
+                window.showNotification('Item moved successfully', 'success');
+            } else {
+                alert('Item moved successfully');
+            }
             closeMoveCopyModal();
             window.location.reload();
         } else {
-            alert('Failed to move item: ' + response.status);
+            if (window.showNotification) {
+                window.showNotification('Failed to move item: ' + response.status, 'error');
+            } else {
+                alert('Failed to move item: ' + response.status);
+            }
         }
     } catch (error) {
-        alert('Error moving item: ' + error.message);
+        if (window.showNotification) {
+            window.showNotification('Error moving item: ' + error.message, 'error');
+        } else {
+            alert('Error moving item: ' + error.message);
+        }
     }
 }
 
@@ -311,27 +317,48 @@ async function copyItem() {
         const response = await postJson('/api/copyFileFolder', data);
         
         if (response.status === 'ok') {
-            alert('Item copied successfully');
+            if (window.showNotification) {
+                window.showNotification('Item copied successfully', 'success');
+            } else {
+                alert('Item copied successfully');
+            }
             closeMoveCopyModal();
             window.location.reload();
         } else {
-            alert('Failed to copy item: ' + response.status);
+            if (window.showNotification) {
+                window.showNotification('Failed to copy item: ' + response.status, 'error');
+            } else {
+                alert('Failed to copy item: ' + response.status);
+            }
         }
     } catch (error) {
-        alert('Error copying item: ' + error.message);
+        if (window.showNotification) {
+            window.showNotification('Error copying item: ' + error.message, 'error');
+        } else {
+            alert('Error copying item: ' + error.message);
+        }
     }
 }
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Cancel button
-    document.getElementById('move-copy-cancel').addEventListener('click', closeMoveCopyModal);
+    const cancelBtn = document.getElementById('move-copy-cancel');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeMoveCopyModal);
+    }
     
     // Move button
-    document.getElementById('move-item-btn').addEventListener('click', moveItem);
+    const moveBtn = document.getElementById('move-item-btn');
+    if (moveBtn) {
+        moveBtn.addEventListener('click', moveItem);
+    }
     
     // Copy button
-    document.getElementById('copy-item-btn').addEventListener('click', copyItem);
+    const copyBtn = document.getElementById('copy-item-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', copyItem);
+    }
 });
 
 // Functions to be called from file click handler
@@ -342,3 +369,7 @@ function showMoveModal(itemPath, itemName) {
 function showCopyModal(itemPath, itemName) {
     showMoveCopyModal(itemPath, itemName, 'copy');
 }
+
+// Export functions
+window.showMoveModal = showMoveModal;
+window.showCopyModal = showCopyModal;

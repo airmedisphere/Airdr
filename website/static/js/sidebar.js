@@ -36,7 +36,7 @@ function initializeSidebar() {
         }
     }
     
-    // Update active navigation item
+    // Update active navigation
     updateActiveNavigation(currentPath);
 }
 
@@ -62,15 +62,21 @@ function setupNewButton() {
     
     if (!newButton || !newUpload) return;
     
+    // Toggle dropdown on button click
     newButton.addEventListener('click', function(e) {
+        e.preventDefault();
         e.stopPropagation();
         toggleNewUpload();
     });
     
     // Handle focus events
     if (newUploadFocus) {
-        newUploadFocus.addEventListener('blur', closeNewUpload);
-        newUploadFocus.addEventListener('focusout', closeNewUpload);
+        newUploadFocus.addEventListener('blur', function() {
+            setTimeout(closeNewUpload, 150); // Small delay to allow clicks
+        });
+        newUploadFocus.addEventListener('focusout', function() {
+            setTimeout(closeNewUpload, 150);
+        });
     }
     
     // Close on outside click
@@ -78,6 +84,11 @@ function setupNewButton() {
         if (!newButton.contains(e.target) && !newUpload.contains(e.target)) {
             closeNewUpload();
         }
+    });
+    
+    // Prevent dropdown from closing when clicking inside
+    newUpload.addEventListener('click', function(e) {
+        e.stopPropagation();
     });
 }
 
@@ -110,7 +121,9 @@ function setupUploadOptions() {
     // New Folder
     const newFolderBtn = document.getElementById('new-folder-btn');
     if (newFolderBtn) {
-        newFolderBtn.addEventListener('click', function() {
+        newFolderBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             closeNewUpload();
             showNewFolderModal();
         });
@@ -120,7 +133,9 @@ function setupUploadOptions() {
     const fileUploadBtn = document.getElementById('file-upload-btn');
     const fileInput = document.getElementById('fileInput');
     if (fileUploadBtn && fileInput) {
-        fileUploadBtn.addEventListener('click', function() {
+        fileUploadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             closeNewUpload();
             fileInput.click();
         });
@@ -129,7 +144,9 @@ function setupUploadOptions() {
     // URL Upload
     const urlUploadBtn = document.getElementById('url-upload-btn');
     if (urlUploadBtn) {
-        urlUploadBtn.addEventListener('click', function() {
+        urlUploadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             closeNewUpload();
             showUrlUploadModal();
         });
@@ -138,7 +155,9 @@ function setupUploadOptions() {
     // Smart Bulk Import
     const smartBulkImportBtn = document.getElementById('smart-bulk-import-btn');
     if (smartBulkImportBtn) {
-        smartBulkImportBtn.addEventListener('click', function() {
+        smartBulkImportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             closeNewUpload();
             showSmartBulkImportModal();
         });
@@ -152,6 +171,7 @@ function setupModalHandlers() {
     // New Folder Modal
     const newFolderCancel = document.getElementById('new-folder-cancel');
     const newFolderCreate = document.getElementById('new-folder-create');
+    const newFolderInput = document.getElementById('new-folder-name');
     
     if (newFolderCancel) {
         newFolderCancel.addEventListener('click', () => closeModal('create-new-folder'));
@@ -161,9 +181,19 @@ function setupModalHandlers() {
         newFolderCreate.addEventListener('click', createNewFolder);
     }
     
+    if (newFolderInput) {
+        newFolderInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                createNewFolder();
+            }
+        });
+    }
+    
     // URL Upload Modal
     const remoteCancel = document.getElementById('remote-cancel');
     const remoteStart = document.getElementById('remote-start');
+    const remoteInput = document.getElementById('remote-url');
     
     if (remoteCancel) {
         remoteCancel.addEventListener('click', () => closeModal('new-url-upload'));
@@ -171,6 +201,15 @@ function setupModalHandlers() {
     
     if (remoteStart) {
         remoteStart.addEventListener('click', startUrlUpload);
+    }
+    
+    if (remoteInput) {
+        remoteInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                startUrlUpload();
+            }
+        });
     }
     
     // Smart Bulk Import Modal
@@ -183,17 +222,11 @@ function setupModalHandlers() {
     }
     
     if (smartBulkCheck) {
-        smartBulkCheck.addEventListener('click', checkChannel);
+        smartBulkCheck.addEventListener('click', checkChannelHandler);
     }
     
     if (smartBulkStart) {
         smartBulkStart.addEventListener('click', startSmartBulkImport);
-    }
-    
-    // Login Modal
-    const passLogin = document.getElementById('pass-login');
-    if (passLogin) {
-        passLogin.addEventListener('click', handleLogin);
     }
     
     // Upload Progress Modal
@@ -209,7 +242,9 @@ function showNewFolderModal() {
     if (input) {
         input.value = '';
     }
-    showModal('create-new-folder');
+    if (window.showModal) {
+        window.showModal('create-new-folder');
+    }
 }
 
 function showUrlUploadModal() {
@@ -219,7 +254,9 @@ function showUrlUploadModal() {
     if (urlInput) urlInput.value = '';
     if (singleThreaded) singleThreaded.checked = false;
     
-    showModal('new-url-upload');
+    if (window.showModal) {
+        window.showModal('new-url-upload');
+    }
 }
 
 function showSmartBulkImportModal() {
@@ -236,7 +273,9 @@ function showSmartBulkImportModal() {
     if (autoRadio) autoRadio.checked = true;
     if (channelStatus) channelStatus.style.display = 'none';
     
-    showModal('smart-bulk-import-modal');
+    if (window.showModal) {
+        window.showModal('smart-bulk-import-modal');
+    }
 }
 
 // Action Functions
@@ -250,7 +289,11 @@ async function createNewFolder() {
     if (path === 'redirect') return;
     
     if (!folderName) {
-        showNotification('Folder name cannot be empty', 'warning');
+        if (window.showNotification) {
+            window.showNotification('Folder name cannot be empty', 'warning');
+        } else {
+            alert('Folder name cannot be empty');
+        }
         return;
     }
     
@@ -263,15 +306,29 @@ async function createNewFolder() {
         const response = await postJson('/api/createNewFolder', data);
         
         if (response.status === 'ok') {
-            closeModal('create-new-folder');
-            showNotification('Folder created successfully', 'success');
+            if (window.closeModal) {
+                window.closeModal('create-new-folder');
+            }
+            if (window.showNotification) {
+                window.showNotification('Folder created successfully', 'success');
+            } else {
+                alert('Folder created successfully');
+            }
             window.location.reload();
         } else {
-            showNotification(response.status, 'error');
+            if (window.showNotification) {
+                window.showNotification(response.status, 'error');
+            } else {
+                alert(response.status);
+            }
         }
     } catch (error) {
         console.error('Error creating folder:', error);
-        showNotification('Failed to create folder', 'error');
+        if (window.showNotification) {
+            window.showNotification('Failed to create folder', 'error');
+        } else {
+            alert('Failed to create folder');
+        }
     }
 }
 
@@ -285,72 +342,75 @@ async function startUrlUpload() {
     const singleThreaded = singleThreadedToggle ? singleThreadedToggle.checked : false;
     
     if (!fileUrl) {
-        showNotification('Please enter a valid URL', 'warning');
+        if (window.showNotification) {
+            window.showNotification('Please enter a valid URL', 'warning');
+        } else {
+            alert('Please enter a valid URL');
+        }
         return;
     }
     
     try {
-        closeModal('new-url-upload');
+        if (window.closeModal) {
+            window.closeModal('new-url-upload');
+        }
         
         // Use the existing Start_URL_Upload function from apiHandler.js
-        await Start_URL_Upload();
+        if (window.Start_URL_Upload) {
+            await window.Start_URL_Upload();
+        } else {
+            throw new Error('URL upload function not available');
+        }
         
     } catch (error) {
         console.error('Error starting URL upload:', error);
-        showNotification(error.message || 'Failed to start URL upload', 'error');
+        if (window.showNotification) {
+            window.showNotification(error.message || 'Failed to start URL upload', 'error');
+        } else {
+            alert(error.message || 'Failed to start URL upload');
+        }
     }
 }
 
 async function startSmartBulkImport() {
     try {
-        closeModal('smart-bulk-import-modal');
+        if (window.closeModal) {
+            window.closeModal('smart-bulk-import-modal');
+        }
         
         // Use the existing Start_Smart_Bulk_Import function from apiHandler.js
-        await Start_Smart_Bulk_Import();
+        if (window.Start_Smart_Bulk_Import) {
+            await window.Start_Smart_Bulk_Import();
+        } else {
+            throw new Error('Smart bulk import function not available');
+        }
         
     } catch (error) {
         console.error('Error starting smart bulk import:', error);
-        showNotification(error.message || 'Failed to start smart bulk import', 'error');
+        if (window.showNotification) {
+            window.showNotification(error.message || 'Failed to start smart bulk import', 'error');
+        } else {
+            alert(error.message || 'Failed to start smart bulk import');
+        }
     }
 }
 
-async function checkChannel() {
+async function checkChannelHandler() {
     try {
         // Use the existing checkChannel function from apiHandler.js
-        await checkChannel();
+        if (window.checkChannel) {
+            await window.checkChannel();
+        } else {
+            throw new Error('Check channel function not available');
+        }
         
     } catch (error) {
         console.error('Error checking channel:', error);
-        showNotification(error.message || 'Failed to check channel', 'error');
-    }
-}
-
-async function handleLogin() {
-    const passwordInput = document.getElementById('auth-pass');
-    if (!passwordInput) return;
-    
-    const password = passwordInput.value;
-    
-    if (!password) {
-        showNotification('Please enter a password', 'warning');
-        return;
-    }
-    
-    try {
-        const data = { 'pass': password };
-        const response = await postJson('/api/checkPassword', data);
-        
-        if (response.status === 'ok') {
-            localStorage.setItem('password', password);
-            closeModal('get-password');
-            showNotification('Logged in successfully', 'success');
-            window.location.reload();
+        if (window.showNotification) {
+            window.showNotification(error.message || 'Failed to check channel', 'error');
         } else {
-            showNotification('Invalid password', 'error');
+            alert(error.message || 'Failed to check channel');
         }
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification('Login failed', 'error');
     }
 }
 
@@ -362,14 +422,26 @@ function cancelFileUpload() {
         
         // Cancel the upload
         postJson('/api/cancelUpload', { 'id': uploadId }).then(() => {
-            showNotification('Upload cancelled', 'info');
-            closeModal('file-uploader');
+            if (window.showNotification) {
+                window.showNotification('Upload cancelled', 'info');
+            } else {
+                alert('Upload cancelled');
+            }
+            if (window.closeModal) {
+                window.closeModal('file-uploader');
+            }
         }).catch(error => {
             console.error('Cancel upload error:', error);
-            showNotification('Failed to cancel upload', 'error');
+            if (window.showNotification) {
+                window.showNotification('Failed to cancel upload', 'error');
+            } else {
+                alert('Failed to cancel upload');
+            }
         });
     } else {
-        closeModal('file-uploader');
+        if (window.closeModal) {
+            window.closeModal('file-uploader');
+        }
     }
 }
 
@@ -383,20 +455,12 @@ async function loadStorageInfo() {
     if (isSpecialPath || !getPassword()) return;
     
     try {
-        const response = await fetch('/api/getStorageSummary', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                password: getPassword()
-            })
-        });
+        const response = await postJson('/api/getStorageSummary', {});
         
-        const data = await response.json();
-        
-        if (data.status === 'ok') {
-            updateStorageDisplay(data.data);
+        if (response.status === 'ok') {
+            updateStorageDisplay(response.data);
+        } else {
+            console.log('Storage info not available:', response.status);
         }
     } catch (error) {
         console.error('Error loading storage info:', error);
@@ -408,7 +472,7 @@ function updateStorageDisplay(storageData) {
     const storageProgressElement = document.getElementById('storage-progress');
     
     if (storageUsedElement) {
-        storageUsedElement.textContent = storageData.formatted_size;
+        storageUsedElement.textContent = storageData.formatted_size || '0 B';
     }
     
     if (storageProgressElement) {
